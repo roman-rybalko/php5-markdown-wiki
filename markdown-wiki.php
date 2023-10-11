@@ -336,13 +336,13 @@ class MarkdownWiki {
 			$footer = array();
 			
 			if (!empty($response['options'])) {
-				$footer[] = '<ul>';
+				$footer[] = '<table><tr>';
 				foreach($response['options'] as $label=>$link) {
 					$footer[] = <<<HTML
-<li><a href="{$link}">{$label}</a></li>
+<td><a href="{$link}">{$label}</a></td>
 HTML;
 				}
-				$footer[] = '</ul>';
+				$footer[] = '</tr></table>';
 			}
 			$response['footer'] = implode("\n", $footer);
 
