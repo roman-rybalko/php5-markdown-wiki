@@ -95,10 +95,10 @@ class MarkdownWiki {
 			default:
 				$response = array(
 					'messages' => array(
-						"Action {$action->action} not implemented."
-					)
+						"Action {$action->action} is not implemented.",
+					),
 				);
-				print_r($action);
+				error_log(print_r($action, true));
 				break;
 		}
 
@@ -350,6 +350,12 @@ HTML;
 				$response['footer'] = '';
 			}
 
+			if (empty($response['messages'])) {
+				$response['messages'] = '';
+			} else {
+				$response['messages'] = '<table><tr><td>' . implode('</td></tr><tr><td>', $response['messages']) . '</td></tr></table>';
+			}
+
 			echo <<<PAGE
 <html>
 <head>
@@ -360,6 +366,7 @@ HTML;
 	<div id="page">
 		<div id="head">
 {$response['header']}
+{$response['messages']}
 		</div>
 		<div id="content">
 {$response['content']}
