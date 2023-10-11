@@ -351,8 +351,9 @@ HTML;
 			}
 
 			echo <<<PAGE
-<html lang="en-GB">
+<html>
 <head>
+	<meta charset="UTF-8">
 	<title>{$response['title']}</title>
 </head>
 <body>
