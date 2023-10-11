@@ -65,7 +65,7 @@ class MarkdownWiki {
 
 		$action->response = $this->doAction($action);
 
-		if (empty($action->model->content)) {
+		if (empty($action->model->content) && empty($action->response['content']) && empty($action->response['messages'])) {
 			header('Content-Type: ' . mime_content_type($action->model->file));
 			header('Content-Length: ' . filesize($action->model->file));
 			readfile($action->model->file);
@@ -98,6 +98,9 @@ class MarkdownWiki {
 				break;
 			case 'browse':
 				$response = $this->doBrowse($action);
+				break;
+			case 'upload':
+				$response = $this->doUpload($action);
 				break;
 			case 'history':
 			case 'admin':
@@ -142,6 +145,7 @@ class MarkdownWiki {
 			'options'  => array(
 				'Top' => "{$action->base}{$toptop}{$this->config['defaultPage']}?id={$toptop}{$this->config['defaultPage']}",
 				'Browse' => "{$action->base}{$top}{$this->config['defaultPage']}?action=browse&amp;id={$top}{$this->config['defaultPage']}",
+				'Upload' => "{$action->base}{$top}{$this->config['defaultPage']}?action=upload&amp;id={$top}{$this->config['defaultPage']}",
 				'Cancel' => "{$action->base}{$action->page}",
 			),
 			'related'  => ''
@@ -200,9 +204,38 @@ class MarkdownWiki {
 			'editForm' => '',
 			'options'  => array(
 				'Top' => "{$action->base}{$toptop}{$this->config['defaultPage']}?id={$toptop}{$this->config['defaultPage']}",
+				'Upload' => "{$action->base}{$top}{$this->config['defaultPage']}?action=upload&amp;id={$top}{$this->config['defaultPage']}",
 			),
 			'related'  => ''
 		);
+
+		return $response;
+	}
+
+	protected function doUpload($action) {
+		$top1 = $top = $this->dirname($action->page);
+		if ($top1 == '') $top1 = '/';
+		$toptop = $this->dirname($top);
+		$response = array(
+			'title'    => "Uploading to: {$top1}",
+			'content'  => '',
+			'editForm' => $this->renderUploadForm($action),
+			'options'  => array(
+				'Top' => "{$action->base}{$toptop}{$this->config['defaultPage']}?id={$toptop}{$this->config['defaultPage']}",
+				'Browse' => "{$action->base}{$top}{$this->config['defaultPage']}?action=browse&amp;id={$top}{$this->config['defaultPage']}",
+				'Cancel' => "{$action->base}{$action->page}",
+			),
+			'related'  => ''
+		);
+
+		$msg = $this->setModelDataUpload($action->model);
+		if ($msg === '') {
+			// skip
+		} elseif ($msg) {
+			$response['messages'][] = $msg;
+		} else {
+			return $this->doBrowse($action);
+		}
 
 		return $response;
 	}
@@ -214,7 +247,13 @@ class MarkdownWiki {
 	protected function getModelData($action) {
 		$data = (object) NULL;
 
-		$data->file    = $this->getFilename($action->page);
+		$filename = NULL;
+		if ($action->method=='POST' && !empty($action->post->tmpfile)) {
+			$filename = $action->post->filename;
+			$data->tmpfile = $action->post->tmpfile;
+		}
+
+		$data->file = $this->getFilename($action->page, $filename);
 
 		if (pathinfo($data->file, PATHINFO_EXTENSION) == $this->config['markdownExt']) {
 			$data->content = $this->getContent($data->file);
@@ -234,6 +273,28 @@ class MarkdownWiki {
 		}
 
 		file_put_contents($model->file, $model->content);
+	}
+
+	protected function setModelDataUpload($model) {
+		if (empty($model->tmpfile)) {
+			// No uploaded file right now
+			return '';
+		}
+
+		$directory = dirname($model->file);
+		if (!file_exists($directory)) {
+			mkdir($directory, 0777, true);
+		} elseif (!is_dir($directory)) {
+			return "ERROR: Can not create the directory " . basename($directory) . " (already exists, is a file)";
+		}
+
+		if (file_exists($model->file)) {
+			return "ERROR: File " . basename($model->file) . " already exists";
+		}
+
+		if (!move_uploaded_file($model->tmpfile, $model->file)) {
+			return "ERROR: move_uploaded_file() failed (see the server error log)";
+		}
 	}
 
 	##
@@ -264,7 +325,12 @@ class MarkdownWiki {
 		return $action;
 	}
 
-	protected function getFilename($page) {
+	protected function getFilename($page, $name = NULL) {
+		if ($name) {
+			if (substr($page, -1) != '/') $page = $this->dirname($page);
+			$name = basename($name);
+			return "{$this->config['docDir']}{$page}{$name}";
+		}
 		if (file_exists("{$this->config['docDir']}{$page}")) {
 			return "{$this->config['docDir']}{$page}";
 		}
@@ -325,6 +391,8 @@ class MarkdownWiki {
 				return 'preview';
 			} elseif (!empty($request['save'])) {
 				return 'save';
+			} elseif (!empty($request['upload'])) {
+				return 'upload';
 			}
 		} elseif (!empty($request['action'])) {
 			return $request['action'];
@@ -371,8 +439,13 @@ class MarkdownWiki {
 
 	protected function getPostDetails($request, $server) {
 		$post = (object) NULL;
-		$post->text    = stripslashes($request['text']);
-		$post->updated = $request['updated'];
+		if (empty($_FILES)) {
+			$post->text    = stripslashes($request['text']);
+			$post->updated = $request['updated'];
+		} else {
+			$post->tmpfile = $_FILES['text']['tmp_name'];
+			$post->filename = basename($_FILES['text']['name']);
+		}
 		return $post;
 	}
 
@@ -502,6 +575,26 @@ HTML;
 		}
 		$content[] = '</table>';
 		return implode("\n", $content);
+	}
+
+	protected function renderUploadForm($action) {
+		$top1 = $top = $this->dirname($action->page);
+		if ($top1 == '') $top1 = '/';
+
+		return <<<HTML
+<form action="{$action->base}{$top}{$this->config['defaultPage']}" method="post" enctype="multipart/form-data">
+	<fieldset>
+		<legend>Uploading to {$top1}</legend>
+		<table><tr><td>
+		<label for="text">Content:</label>
+		</td><td>
+		<input type="file" name="text" id="text">
+		</td><td>
+		<input type="submit" name="upload" value="Upload">
+		</td></tr></table>
+	</fieldset>
+</form>
+HTML;
 	}
 
 }
