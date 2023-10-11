@@ -333,18 +333,22 @@ class MarkdownWiki {
 		if (!empty($this->config['layout'])) {
 			// TODO: Use a custom template
 		} else {
-			$footer = array();
+			$header = array();
 			
 			if (!empty($response['options'])) {
-				$footer[] = '<table><tr>';
+				$header[] = '<table><tr>';
 				foreach($response['options'] as $label=>$link) {
-					$footer[] = <<<HTML
+					$header[] = <<<HTML
 <td><a href="{$link}">{$label}</a></td>
 HTML;
 				}
-				$footer[] = '</tr></table>';
+				$header[] = '</tr></table>';
 			}
-			$response['footer'] = implode("\n", $footer);
+			$response['header'] = implode("\n", $header);
+
+			if (empty($response['footer'])) {
+				$response['footer'] = '';
+			}
 
 			echo <<<PAGE
 <html lang="en-GB">
@@ -353,7 +357,9 @@ HTML;
 </head>
 <body>
 	<div id="page">
-		<div id="head"></div>
+		<div id="head">
+{$response['header']}
+		</div>
 		<div id="content">
 {$response['content']}
 {$response['editForm']}
