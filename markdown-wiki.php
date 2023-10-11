@@ -254,6 +254,9 @@ class MarkdownWiki {
 	}
 
 	protected function getFilename($page) {
+		if (file_exists("{$this->config['docDir']}{$page}")) {
+			return "{$this->config['docDir']}{$page}";
+		}
 		return "{$this->config['docDir']}{$page}.{$this->config['markdownExt']}";
 	}
 
