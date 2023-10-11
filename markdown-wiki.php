@@ -89,9 +89,11 @@ class MarkdownWiki {
 			case 'save':
 				$response = $this->doSave($action);
 				break;
+			case 'browse':
+				$response = $this->doBrowse($action);
+				break;
 			case 'history':
 			case 'admin':
-			case 'browse':
 			default:
 				$response = array(
 					'messages' => array(
@@ -106,12 +108,16 @@ class MarkdownWiki {
 	}
 
 	protected function doDisplay($action) {
+		$top = $this->dirname($action->page);
+		$toptop = $this->dirname($top);
 		$response = array(
 			'title'    => "Displaying: {$action->page}",
 			'content'  => $this->renderDocument($action),
 			'editForm' => '',
 			'options'  => array(
-				'Edit' => "{$action->base}{$action->page}?action=edit&amp;id={$action->page}"
+				'Top' => "{$action->base}{$toptop}{$this->config['defaultPage']}?id={$toptop}{$this->config['defaultPage']}",
+				'Browse' => "{$action->base}{$top}{$this->config['defaultPage']}?action=browse&amp;id={$top}{$this->config['defaultPage']}",
+				'Edit' => "{$action->base}{$action->page}?action=edit&amp;id={$action->page}",
 			),
 			'related'  => ''
 		);
@@ -120,12 +126,16 @@ class MarkdownWiki {
 	}
 
 	protected function doEdit($action) {
+		$top = $this->dirname($action->page);
+		$toptop = $this->dirname($top);
 		$response = array(
 			'title'    => "Editing: {$action->page}",
 			'content'  => '',
 			'editForm' => $this->renderEditForm($action),
 			'options'  => array(
-				'Cancel' => "{$action->base}{$action->page}"
+				'Top' => "{$action->base}{$toptop}{$this->config['defaultPage']}?id={$toptop}{$this->config['defaultPage']}",
+				'Browse' => "{$action->base}{$top}{$this->config['defaultPage']}?action=browse&amp;id={$top}{$this->config['defaultPage']}",
+				'Cancel' => "{$action->base}{$action->page}",
 			),
 			'related'  => ''
 		);
@@ -134,12 +144,16 @@ class MarkdownWiki {
 	}
 
 	protected function doPreview($action) {
+		$top = $this->dirname($action->page);
+		$toptop = $this->dirname($top);
 		$response = array(
 			'title'    => "Editing: {$action->page}",
 			'content'  => $this->renderPreviewDocument($action),
 			'editForm' => $this->renderEditForm($action),
 			'options'  => array(
-				'Cancel' => "{$action->base}{$action->page}"
+				'Top' => "{$action->base}{$toptop}{$this->config['defaultPage']}?id={$toptop}{$this->config['defaultPage']}",
+				'Browse' => "{$action->base}{$top}{$this->config['defaultPage']}?action=browse&amp;id={$top}{$this->config['defaultPage']}",
+				'Cancel' => "{$action->base}{$action->page}",
 			),
 			'related'  => ''
 		);
@@ -161,6 +175,29 @@ class MarkdownWiki {
 		}
 
 		return $this->doDisplay($action);
+	}
+
+	private function dirname($path) {
+		$top = dirname($path);
+		if ($top=='.' || $top=='/' || $top=='./' || $top=='') $top = ''; else $top .= '/';
+		return $top;
+	}
+
+	protected function doBrowse($action) {
+		$top1 = $top = $this->dirname($action->page);
+		if ($top1 == '') $top1 = '/';
+		$toptop = $this->dirname($top);
+		$response = array(
+			'title'    => "Browsing: {$top1}",
+			'content'  => $this->renderFileList($action),
+			'editForm' => '',
+			'options'  => array(
+				'Top' => "{$action->base}{$toptop}{$this->config['defaultPage']}?id={$toptop}{$this->config['defaultPage']}",
+			),
+			'related'  => ''
+		);
+
+		return $response;
 	}
 
 	##
@@ -229,7 +266,7 @@ class MarkdownWiki {
 
 	protected function getLastUpdated($filename) {
 		if (file_exists($filename)) {
-			return filectime($filename);
+			return filemtime($filename);
 		}
 		return 0;
 	}
@@ -427,6 +464,29 @@ PAGE;
 </form>
 HTML;
 	}
+
+	protected function renderFileList($action) {
+		$directory = $this->dirname($action->model->file);
+		$top = $this->dirname($action->page);
+		$content[] = '<table>';
+		if (file_exists($directory)) foreach (scandir($directory) as $file) {
+			if ($file == '.' || $file == '..') continue;
+			$content[] = '<tr><td>';
+			if (is_dir("{$directory}{$file}")) {
+				$content[] = '<a href="' . "{$action->base}{$top}{$file}/{$this->config['defaultPage']}?id={$top}{$file}/{$this->config['defaultPage']}" . "\">{$file}</a>";
+			} else {
+				$content[] = '<a href="' . "{$action->base}{$top}{$file}?id={$top}{$file}" . "\">{$file}</a>";
+			}
+			$content[] = '</td><td>';
+			$content[] = filesize("{$directory}{$file}");
+			$content[] = '</td><td>';
+			$content[] = date("Y-m-d H:i:s", $this->getLastUpdated("{$directory}{$file}"));
+			$content[] = '</td></tr>';
+		}
+		$content[] = '</table>';
+		return implode("\n", $content);
+	}
+
 }
 
 if (!empty($_SERVER['REQUEST_URI'])) {
