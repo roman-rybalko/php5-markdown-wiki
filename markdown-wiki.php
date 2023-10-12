@@ -268,6 +268,10 @@ class MarkdownWiki {
 		if (file_exists("{$this->config['docDir']}{$page}")) {
 			return "{$this->config['docDir']}{$page}";
 		}
+		if (pathinfo($page, PATHINFO_EXTENSION) == $this->config['markdownExt'])
+		{
+			return "{$this->config['docDir']}{$page}";
+		}
 		return "{$this->config['docDir']}{$page}.{$this->config['markdownExt']}";
 	}
 
