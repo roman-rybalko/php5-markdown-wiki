@@ -296,17 +296,15 @@ class MarkdownWiki {
 		$page = '';
 
 		// Determine the page name
-		if (!empty($server['PATH_INFO'])) {
-			//echo "Path info detected\n";
+		if (!empty($request['id'])) {
+			$page = $request['id'];
+		} elseif (!empty($server['PATH_INFO'])) {
+			//error_log("Path info detected");
 			// If we are using PATH_INFO then that's the page name
 			$page = substr($server['PATH_INFO'], 1);
-
-		} elseif (!empty($request['id'])) {
-			$page = $request['id'];
-
 		} else {
 			// TODO: Keep checking
-			//echo "WARN: Could not find a pagename\n";
+			//error_log("WARN: Could not find a pagename");
 		}
 
 		// Check whether a default Page is being requested
