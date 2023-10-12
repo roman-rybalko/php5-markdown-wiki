@@ -24,7 +24,7 @@ class MarkdownWiki {
 		$baseDir = dirname(__FILE__) . '/';
 
 		// Including the markdown parser
-		//echo "BaseDir: {$baseDir}\n";
+		//error_log("BaseDir: {$baseDir}");
 		require_once $baseDir . 'markdown.php';
 	}
 
@@ -73,7 +73,7 @@ class MarkdownWiki {
 			$output = $this->renderResponse($action->response);
 		}
 
-		//echo '<pre>'; print_r($action); echo '</pre>';
+		//error_log(print_r($action, true));
 	}
 
 	##
@@ -246,8 +246,8 @@ class MarkdownWiki {
 		if (!$request) { $request = $_REQUEST; }
 		if (!$server)  { $server  = $_SERVER;  }
 
-		//echo "Request: "; print_r($request);
-		//echo "Server : "; print_r($server);
+		//error_log("Request: " . print_r($request, true));
+		//error_log("Server : " . print_r($server, true));
 
 		$action->method = $this->getMethod($request, $server);
 		$action->page   = $this->getPage($request, $server);
@@ -508,7 +508,7 @@ if (!empty($_SERVER['REQUEST_URI'])) {
 	# Dealing with a web request
 	$wiki = new MarkdownWiki($config);
 	$wiki->handleRequest();
-	//print_r($wiki);
+	//error_log(print_r($wiki, true));
 }
 
 ?>
