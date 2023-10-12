@@ -1,14 +1,29 @@
 PHP5 Markdown
 =============
 
-A simple wiki built around the standard PHP Markdown class.
+A lightweight wiki built around the PHP Markdown class (credits to Michel Fortin and John Gruber).
 
-Wiki links
-----------
+Please consider other forks of this project on GitHub.
 
-Currently I've hacked the link handling methods in the markdown class so that relative paths are treated as wiki page references, but in all cases this relative path is treated as fixed from the wiki root. This hacking should probably be done by extending the Markdown class and overriding or wrapping the necessary methods.
 
-So a link syntax of `[My page](myDir/myPage)` will be treated as a wiki link and linked to the page `{$wikibase}/myDir/myPage}`, so looking for a file called *myPage.markdown* in the directory *myDir* which is a sub-directory of the document directory.
+Features
+--------
+
+- Markdown
+- Versioning
+- Filesystem browsing
+- File uploading, clipboard handling
+- File renaming / deletion
+- Link resolving (fetch the html title)
+
+
+Screenshots
+-----------
+
+![scrn](README/image.png)
+![scrn1](README/image.1.png)
+![scrn2](README/image.2.png)
+![scrn3](README/image.3.png)
 
 
 Nginx Config
@@ -31,14 +46,16 @@ Nginx Config
 
             location ~ \.php(/.+)?$ {
                 fastcgi_pass unix:/var/run/php5-fpm.sock;
-                include fastcgi_params;
                 fastcgi_split_path_info ^(.+\.php)(/.+)$;
-                fastcgi_param PATH_INFO $path_info;
+                fastcgi_param PATH_INFO $fastcgi_path_info;
+                include fastcgi_params;
             }
         }
     }
 
-------
+
+---
+
 
 To-do:
 ------
