@@ -45,12 +45,8 @@ To-do:
 
 * Specifying a stylesheet
 * Extract topmost header in document for use as a title
-* Error message handling
 * Documentation of install
-* Version control. Choice between git and self-versioning
 * Override layout rendering with templates
-* Solve mod_rewrite baseUrl - maybe an extra config?
-* History and rollback
 * Allow translations of interface (how are we doing UTF-8 wise?)
 * Search
 * Recent changes page
@@ -58,7 +54,6 @@ To-do:
 * Improve test coverage of MarkdownWiki class
 * Tighter/more secure file-update/conflict checking
 * Documentation of layout templates / accessible data structures
-
 
 
 Wish list:
@@ -71,10 +66,6 @@ Wish list:
 Things to consider:
 -------------------
 
-* Authentication / login
-* Export/import markdown documents
 * sub-content / shared modules
-* Navigation items
 * Other text-format types ( textframe or textile )
-
 
