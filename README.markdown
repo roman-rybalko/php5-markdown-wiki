@@ -16,27 +16,27 @@ Nginx Config
 
     server {
         listen 80;
-        server_name examplek.com;
-
+        server_name example.com;
         root /var/www;
-        index index.php index.html index.htm;
+        index index.php;
+
+        location ~ /markdown/pages/ {
+            deny all;
+            return 404;
+        }
 
         location ~ /markdown/ {
-            try_files $uri /markdown.php?$args;
-            include fastcgi_params;
-            fastcgi_pass unix:/var/run/php5-fpm.sock;
-        }
+            auth_basic "PHP5 Markdown Wiki";
+            auth_basic_user_file /etc/nginx/htpasswd;
 
-        location ~ \.php$ {
-            try_files $uri /index.php;
-            include fastcgi_params;
-            fastcgi_pass unix:/var/run/php5-fpm.sock;
+            location ~ \.php(/.+)?$ {
+                fastcgi_pass unix:/var/run/php5-fpm.sock;
+                include fastcgi_params;
+                fastcgi_split_path_info ^(.+\.php)(/.+)$;
+                fastcgi_param PATH_INFO $path_info;
+            }
         }
-
-        access_log /var/log/www/access.log;
-        error_log  /var/log/www/error.log;
     }
-
 
 ------
 
