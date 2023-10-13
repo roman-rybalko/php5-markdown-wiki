@@ -131,6 +131,14 @@ class MarkdownWiki {
 			'related'  => ''
 		);
 
+		if (basename($action->page)==$this->config['defaultPage'] || basename($action->page)=="{$this->config['defaultPage']}.{$this->config['markdownExt']}") {
+			// skip
+		} else {
+			$response['options'] += array(
+				'Index' => "{$action->base}{$top}{$this->config['defaultPage']}?id={$top}{$this->config['defaultPage']}",
+			);
+		}
+
 		return $response;
 	}
 
@@ -211,6 +219,7 @@ class MarkdownWiki {
 				'Top' => "{$action->base}{$toptop}{$this->config['defaultPage']}?id={$toptop}{$this->config['defaultPage']}",
 				'Upload' => "{$action->base}{$top}{$this->config['defaultPage']}?action=upload&amp;id={$top}{$this->config['defaultPage']}",
 				'Edit' => "{$action->base}{$action->page}?action=edit&amp;id={$action->page}",
+				'Index' => "{$action->base}{$top}{$this->config['defaultPage']}?id={$top}{$this->config['defaultPage']}",
 			),
 			'related'  => ''
 		);
