@@ -10,6 +10,9 @@ $config = array(
 	# Default page name
 	'defaultPage' => 'index'
 
+	# nginx PATH_INFO parsing needs an explicit .php extension
+	'baseUrl'     => '/markdown/index.php/',
+
 );
 
 
