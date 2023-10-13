@@ -102,7 +102,6 @@ class MarkdownWiki {
 			case 'upload':
 				$response = $this->doUpload($action);
 				break;
-			case 'history':
 			case 'admin':
 			default:
 				$response = array(
@@ -173,7 +172,6 @@ class MarkdownWiki {
 	}
 
 	protected function doSave($action) {
-		// TODO: Implement some sort of versioning
 		if (empty($action->model)) {
 			// This is a new file
 			$msg = "INFO: Saving a new file";
@@ -272,6 +270,31 @@ class MarkdownWiki {
 		return $data;
 	}
 
+	private function getBackupFilename($path, $max_backups = 1000) {
+		$dir = $this->dirname($path);
+		$file = basename($path);
+		$extpos = strrpos($file, '.');
+		if (!$extpos) $extpos = strlen($file);
+		$pref = $dir . substr($file, 0, $extpos);
+		$ext = substr($file, $extpos, strlen($path) - $extpos);
+		//error_log("dir = {$dir}, file = {$file}, ext = {$ext}");
+
+		$fn = function($i) use($pref, $ext) { return "{$pref}.{$i}{$ext}"; };
+
+		for ($i = 1; $i < $max_backups; ++$i) {
+			$backup = $fn($i);
+			if (!file_exists($backup)) break;
+		}
+		//error_log("backup = {$backup}, i = {$i}");
+
+		if ($i >= $max_backups)
+			// max backup count was reached, rotating backups
+			for ($k = 1; $k+1 < $i; ++$k)
+				rename($fn($k+1), $fn($k));
+
+		return $backup;
+	}
+
 	protected function setModelData($model) {
 		$directory = dirname($model->file);
 		if (!file_exists($directory)) {
@@ -282,10 +305,19 @@ class MarkdownWiki {
 			return "ERROR: Can not create the directory " . basename($directory) . " (already exists, is a file)";
 		}
 
+		// Save version
+		if (file_exists($model->file)) {
+			if (!rename($model->file, $this->getBackupFilename($model->file))) {
+				$msg = "WARN: backup failed (see the server error log)";
+			}
+		}
+
 		if (!file_put_contents($model->file, $model->content))
 		{
 			return "ERROR: file_put_contents() failed (see the server error log)";
 		}
+
+		if (!empty($msg)) return $msg;
 	}
 
 	protected function setModelDataUpload($model) {
@@ -412,8 +444,6 @@ class MarkdownWiki {
 		} elseif (!empty($server['PATH_INFO'])) {
 			return 'display';
 		}
-
-		// TODO: handle version history etc.
 
 		return 'UNKNOWN';
 	}
