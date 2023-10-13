@@ -274,6 +274,21 @@ class MarkdownWiki {
 		$newpath = "{$this->config['docDir']}{$action->post->newpath}";
 		$newpathdir = dirname($newpath);
 
+		if (!file_exists($newpathdir)) {
+			if (empty($action->post->force)) {
+				$response = $this->doBrowse($action);
+				$directory = $this->dirname($action->post->newpath);
+				$response['messages'][] = "ERROR: The destination directory {$directory} does not exist";
+				return $response;
+			}
+
+			if (!mkdir($newpathdir, 0777, true)) {
+				$response = $this->doBrowse($action);
+				$response['messages'][] = "ERROR: mkdir() failed (see the server error log)";
+				return $response;
+			}
+		}
+
 		if (!is_dir($newpathdir)) {
 			$response = $this->doBrowse($action);
 			$directory = $this->dirname($action->post->newpath);
@@ -282,9 +297,14 @@ class MarkdownWiki {
 		}
 
 		if (file_exists($newpath)) {
-			$response = $this->doBrowse($action);
-			$response['messages'][] = "ERROR: The path {$action->post->newpath} already exists";
-			return $response;
+			if (empty($action->post->force)) {
+				$response = $this->doBrowse($action);
+				$response['messages'][] = "ERROR: The path {$action->post->newpath} already exists";
+				return $response;
+			}
+
+			// force rename with clobbering
+			$newpath = $this->getBackupFilename($newpath);
 		}
 
 		if (!rename($path, $newpath)) {
@@ -554,6 +574,8 @@ class MarkdownWiki {
 		} elseif (!empty($request['rename'])) {
 			if ($this->isPathSecure($request['path'])) $post->path = $request['path'];
 			if ($this->isPathSecure($request['newpath'])) $post->newpath = $request['newpath'];
+			if (!empty($request['force'])) $post->force = $request['force'];
+			//error_log(print_r($post, true));
 		} else {
 			$post->text    = stripslashes($request['text']);
 			$post->updated = $request['updated'];
@@ -684,6 +706,8 @@ HTML;
 			$content[] = '</td><td>';
 			$content[] = date("Y-m-d H:i:s", $this->getLastUpdated("{$directory}{$file}"));
 			$content[] = '</td><td>';
+			$content[] = "<a href=\"#\" onclick=\"deletePath('{$top}{$file}');return false;\">delete</a>";
+			$content[] = '</td><td>';
 			$content[] = "<a href=\"#\" onclick=\"renamePath('{$top}{$file}');return false;\">rename</a>";
 			$content[] = '</td></tr>';
 		}
@@ -693,8 +717,17 @@ HTML;
 	<input type="hidden" name="path" id="rename_path">
 	<input type="hidden" name="newpath" id="rename_newpath">
 	<input type="hidden" name="rename" value="rename">
+	<input type="hidden" name="force" id="rename_force">
 </form>
 <script>
+function deletePath(path) {
+	if (confirm('Delete ' + path + ' ?')) {
+		document.getElementById('rename_path').value = path;
+		document.getElementById('rename_newpath').value = '.trash/' + path;
+		document.getElementById('rename_force').value = 'force';
+		document.getElementById('rename').submit();
+	}
+}
 function renamePath(path) {
 	var newpath = prompt('New path/filename', path);
 	if (newpath) {
