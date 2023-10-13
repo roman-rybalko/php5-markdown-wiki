@@ -176,16 +176,23 @@ class MarkdownWiki {
 		// TODO: Implement some sort of versioning
 		if (empty($action->model)) {
 			// This is a new file
-			echo "INFO: Saving a new file\n";
-		} elseif ($action->model->updated==$action->post->updated) {
-			// Check there isn't an editing conflict
+			$msg = "INFO: Saving a new file";
+		} else
+		// Check there isn't an editing conflict
+		if ($action->model->updated==$action->post->updated) {
 			$action->model->content = $action->post->text;
-			$this->setModelData($action->model);
+			$msg = $this->setModelData($action->model);
 		} else {
-			echo "WARN: Editing conflict!\n";
+			$msg = "WARN: Editing conflict!";
 		}
 
-		return $this->doDisplay($action);
+		$response = $this->doDisplay($action);
+
+		if (!empty($msg)) {
+			$response['messages'][] = $msg;
+		}
+
+		return $response;
 	}
 
 	private function dirname($path) {
@@ -267,12 +274,17 @@ class MarkdownWiki {
 	protected function setModelData($model) {
 		$directory = dirname($model->file);
 		if (!file_exists($directory)) {
-			mkdir($directory, 0777, true);
+			if (!mkdir($directory, 0777, true)) {
+				return "ERROR: Can not create some directory in the tree (probably there is a file on the way, see the server error log)";
+			}
 		} elseif (!is_dir($directory)) {
-			echo "ERROR: Cannot create {$model->file}\n";
+			return "ERROR: Can not create the directory " . basename($directory) . " (already exists, is a file)";
 		}
 
-		file_put_contents($model->file, $model->content);
+		if (!file_put_contents($model->file, $model->content))
+		{
+			return "ERROR: file_put_contents() failed (see the server error log)";
+		}
 	}
 
 	protected function setModelDataUpload($model) {
