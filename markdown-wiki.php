@@ -102,7 +102,9 @@ class MarkdownWiki {
 			case 'upload':
 				$response = $this->doUpload($action);
 				break;
-			case 'admin':
+			case 'rename':
+				$response = $this->doRename($action);
+				break;
 			default:
 				$response = array(
 					'messages' => array(
@@ -253,6 +255,45 @@ class MarkdownWiki {
 		}
 
 		return $response;
+	}
+
+	protected function doRename($action) {
+		if (empty($action->post->path) || empty($action->post->newpath)) {
+			$response = $this->doBrowse($action);
+			$response['messages'][] = "ERROR: Invalid rename request (probably some params are insecure)";
+			return $response;
+		}
+
+		$path = "{$this->config['docDir']}{$action->post->path}";
+		if (!file_exists($path)) {
+			$response = $this->doBrowse($action);
+			$response['messages'][] = "ERROR: The path {$action->post->path} does not exist";
+			return $response;
+		}
+
+		$newpath = "{$this->config['docDir']}{$action->post->newpath}";
+		$newpathdir = dirname($newpath);
+
+		if (!is_dir($newpathdir)) {
+			$response = $this->doBrowse($action);
+			$directory = $this->dirname($action->post->newpath);
+			$response['messages'][] = "ERROR: The destination directory {$directory} is a file";
+			return $response;
+		}
+
+		if (file_exists($newpath)) {
+			$response = $this->doBrowse($action);
+			$response['messages'][] = "ERROR: The path {$action->post->newpath} already exists";
+			return $response;
+		}
+
+		if (!rename($path, $newpath)) {
+			$response = $this->doBrowse($action);
+			$response['messages'][] = "ERROR: rename() failed (see the server error log)";
+			return $response;
+		}
+
+		return $this->doBrowse($action);
 	}
 
 	##
@@ -448,6 +489,8 @@ class MarkdownWiki {
 				return 'save';
 			} elseif (!empty($request['upload'])) {
 				return 'upload';
+			} elseif (!empty($request['rename'])) {
+				return 'rename';
 			}
 		} elseif (!empty($request['action'])) {
 			return $request['action'];
@@ -490,14 +533,30 @@ class MarkdownWiki {
 		return '/markdown/'; // PATH-INFO base
 	}
 
+	private function isPathSecure($path) {
+		// str_contains()
+		if (strpos($path, '/../') !== false) return false;
+
+		// str_starts_with()
+		if (strpos($path, '../') === 0) return false;
+
+		// str_ends_with()
+		if (strpos(strrev($path), strrev('/..')) === 0) return false;
+
+		return true;
+	}
+
 	protected function getPostDetails($request, $server) {
 		$post = (object) NULL;
-		if (empty($_FILES)) {
-			$post->text    = stripslashes($request['text']);
-			$post->updated = $request['updated'];
-		} else {
+		if (!empty($request['upload'])) {
 			$post->tmpfile = $_FILES['text']['tmp_name'];
 			$post->filename = basename($_FILES['text']['name']);
+		} elseif (!empty($request['rename'])) {
+			if ($this->isPathSecure($request['path'])) $post->path = $request['path'];
+			if ($this->isPathSecure($request['newpath'])) $post->newpath = $request['newpath'];
+		} else {
+			$post->text    = stripslashes($request['text']);
+			$post->updated = $request['updated'];
 		}
 		return $post;
 	}
@@ -624,9 +683,28 @@ HTML;
 			$content[] = filesize("{$directory}{$file}");
 			$content[] = '</td><td>';
 			$content[] = date("Y-m-d H:i:s", $this->getLastUpdated("{$directory}{$file}"));
+			$content[] = '</td><td>';
+			$content[] = "<a href=\"#\" onclick=\"renamePath('{$top}{$file}');return false;\">rename</a>";
 			$content[] = '</td></tr>';
 		}
 		$content[] = '</table>';
+		$content[] = <<<HTML
+<form action="{$action->base}{$action->page}" method="post" id="rename">
+	<input type="hidden" name="path" id="rename_path">
+	<input type="hidden" name="newpath" id="rename_newpath">
+	<input type="hidden" name="rename" value="rename">
+</form>
+<script>
+function renamePath(path) {
+	var newpath = prompt('New path/filename', path);
+	if (newpath) {
+		document.getElementById('rename_path').value = path;
+		document.getElementById('rename_newpath').value = newpath;
+		document.getElementById('rename').submit();
+	}
+}
+</script>
+HTML;
 		return implode("\n", $content);
 	}
 
