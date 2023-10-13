@@ -383,6 +383,7 @@ class MarkdownWiki {
 		if ($name) {
 			if (substr($page, -1) != '/') $page = $this->dirname($page);
 			$name = basename($name);
+			$name = str_replace(' ', '_', $name);
 			return "{$this->config['docDir']}{$page}{$name}";
 		}
 		if (file_exists("{$this->config['docDir']}{$page}")) {
