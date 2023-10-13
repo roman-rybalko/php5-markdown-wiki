@@ -212,6 +212,7 @@ class MarkdownWiki {
 			'options'  => array(
 				'Top' => "{$action->base}{$toptop}{$this->config['defaultPage']}?id={$toptop}{$this->config['defaultPage']}",
 				'Upload' => "{$action->base}{$top}{$this->config['defaultPage']}?action=upload&amp;id={$top}{$this->config['defaultPage']}",
+				'Edit' => "{$action->base}{$action->page}?action=edit&amp;id={$action->page}",
 			),
 			'related'  => ''
 		);
