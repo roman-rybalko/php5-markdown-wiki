@@ -154,8 +154,8 @@ class MarkdownWiki {
 			'options'  => array(
 				'Top' => "{$action->base}{$toptop}{$this->config['defaultPage']}?id={$toptop}{$this->config['defaultPage']}",
 				'Browse' => "{$action->base}{$top}{$this->config['defaultPage']}?action=browse&amp;id={$top}{$this->config['defaultPage']}",
-				'Upload' => "{$action->base}{$top}{$this->config['defaultPage']}?action=upload&amp;id={$top}{$this->config['defaultPage']}",
 				'Cancel' => "{$action->base}{$action->page}",
+				'Upload' => "{$action->base}{$top}{$this->config['defaultPage']}?action=upload&amp;id={$top}{$this->config['defaultPage']}",
 			),
 			'related'  => ''
 		);
@@ -219,9 +219,9 @@ class MarkdownWiki {
 			'editForm' => '',
 			'options'  => array(
 				'Top' => "{$action->base}{$toptop}{$this->config['defaultPage']}?id={$toptop}{$this->config['defaultPage']}",
-				'Upload' => "{$action->base}{$top}{$this->config['defaultPage']}?action=upload&amp;id={$top}{$this->config['defaultPage']}",
-				'Edit' => "{$action->base}{$action->page}?action=edit&amp;id={$action->page}",
 				'Index' => "{$action->base}{$top}{$this->config['defaultPage']}?id={$top}{$this->config['defaultPage']}",
+				'Edit' => "{$action->base}{$action->page}?action=edit&amp;id={$action->page}",
+				'Upload' => "{$action->base}{$top}{$this->config['defaultPage']}?action=upload&amp;id={$top}{$this->config['defaultPage']}",
 			),
 			'related'  => ''
 		);
@@ -241,6 +241,7 @@ class MarkdownWiki {
 				'Top' => "{$action->base}{$toptop}{$this->config['defaultPage']}?id={$toptop}{$this->config['defaultPage']}",
 				'Browse' => "{$action->base}{$top}{$this->config['defaultPage']}?action=browse&amp;id={$top}{$this->config['defaultPage']}",
 				'Cancel' => "{$action->base}{$action->page}",
+				'Edit' => "{$action->base}{$action->page}?action=edit&amp;id={$action->page}",
 			),
 			'related'  => ''
 		);
