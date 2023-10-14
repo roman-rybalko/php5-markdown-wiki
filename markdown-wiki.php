@@ -246,9 +246,15 @@ class MarkdownWiki {
 			'related'  => ''
 		);
 
-		$msg = $this->setModelDataUpload($action->model);
+		$msg = $this->setModelDataUpload($action->model, !empty($action->post->force));
+		//error_log("msg = {$msg}, type = " . gettype($msg));
 		if ($msg === '') {
 			// skip
+		} elseif (is_array($msg)) {
+			// informational messages
+			$response = $this->doBrowse($action);
+			$response['messages'] = empty($response['messages']) ? $msg : $response['messages'] + $msg;
+			return $response;
 		} elseif ($msg) {
 			$response['messages'][] = $msg;
 		} else {
@@ -391,7 +397,12 @@ class MarkdownWiki {
 		if (!empty($msg)) return $msg;
 	}
 
-	protected function setModelDataUpload($model) {
+	// Returns:
+	// '' - no needed post data in the request, skipping
+	// 'str' - error
+	// ['str', 'str'] - ok, info messages
+	// NULL - ok
+	protected function setModelDataUpload($model, $force = false) {
 		if (empty($model->tmpfile)) {
 			// No uploaded file right now
 			return '';
@@ -405,12 +416,20 @@ class MarkdownWiki {
 		}
 
 		if (file_exists($model->file)) {
-			return "ERROR: File " . basename($model->file) . " already exists";
+			if (!$force) {
+				return "ERROR: File " . basename($model->file) . " already exists";
+			}
+
+			// force uploading with clobbering
+			$model->file = $this->getBackupFilename($model->file);
+			$msgs[] = "INFO: Target file already exists, uploaded with a new name: " . basename($model->file);
 		}
 
 		if (!move_uploaded_file($model->tmpfile, $model->file)) {
 			return "ERROR: move_uploaded_file() failed (see the server error log)";
 		}
+
+		if (!empty($msgs)) return $msgs;
 	}
 
 	##
@@ -570,8 +589,9 @@ class MarkdownWiki {
 	protected function getPostDetails($request, $server) {
 		$post = (object) NULL;
 		if (!empty($request['upload'])) {
-			$post->tmpfile = $_FILES['text']['tmp_name'];
-			$post->filename = basename($_FILES['text']['name']);
+			$post->tmpfile = $_FILES['file']['tmp_name'];
+			$post->filename = basename($_FILES['file']['name']);
+			if (!empty($request['force'])) $post->force = $request['force'];
 		} elseif (!empty($request['rename'])) {
 			if ($this->isPathSecure($request['path'])) $post->path = $request['path'];
 			if ($this->isPathSecure($request['newpath'])) $post->newpath = $request['newpath'];
@@ -751,14 +771,35 @@ HTML;
 	<fieldset>
 		<legend>Uploading to {$top1}</legend>
 		<table><tr><td>
-		<label for="text">Content:</label>
+		<label for="upload_file">Content:</label>
 		</td><td>
-		<input type="file" name="text" id="text">
+		<input type="file" name="file" id="upload_file">
 		</td><td>
-		<input type="submit" name="upload" value="Upload">
+		<input type="submit" name="upload" value="Upload" id="upload">
 		</td></tr></table>
 	</fieldset>
+	<input type="hidden" name="force" id="upload_force">
+	<span title="Shift-Ins does not always work. If there is no file in clipboard try to reduce the size of the image.">Ctrl-V to paste from clipboard.</span>
 </form>
+<script>
+function handleClipboard(e) {
+	if (e.clipboardData.files.length < 1) {
+		alert('No files in clipboard');
+		return;
+	}
+	if (e.clipboardData.files.length > 1) {
+		alert('Too many files in clipboard');
+		return;
+	}
+	if (confirm('Uploading ' + e.clipboardData.files[0].name + ' ' + e.clipboardData.files[0].size + ' ' + e.clipboardData.files[0].type + ' ?')) {
+		document.getElementById('upload_file').files = e.clipboardData.files;
+		// No way to rename uploaded file here, clobbering with a `force` flag
+		document.getElementById('upload_force').value = 'force';
+		document.getElementById('upload').click();
+	}
+}
+window.addEventListener('paste', handleClipboard);
+</script>
 HTML;
 	}
 
