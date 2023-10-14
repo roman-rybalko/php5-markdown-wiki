@@ -592,7 +592,7 @@ class MarkdownWiki {
 			if (!empty($request['force'])) $post->force = $request['force'];
 			//error_log(print_r($post, true));
 		} else {
-			$post->text    = stripslashes($request['text']);
+			$post->text = $request['text'];
 			$post->updated = $request['updated'];
 			if (!empty($request['resolve'])) $post->resolve = $request['resolve'];
 		}
