@@ -119,17 +119,17 @@ class MarkdownWiki {
 	}
 
 	protected function doDisplay($action) {
-		$top = $this->dirname($action->page);
-		$toptop = $this->dirname($top);
+		$dir = $this->dirname($action->page);
+		$updir = $this->dirname($dir);
 		$response = array(
 			'title'    => "Displaying: {$action->page}",
 			'content'  => $this->renderDocument($action),
 			'editForm' => '',
 			'options'  => array(
-				'Top' => "{$action->base}{$toptop}{$this->config['defaultPage']}?id={$toptop}{$this->config['defaultPage']}",
-				'Browse' => "{$action->base}{$top}{$this->config['defaultPage']}?action=browse&amp;id={$top}{$this->config['defaultPage']}",
+				'Up' => "{$action->base}{$updir}{$this->config['defaultPage']}?id={$updir}{$this->config['defaultPage']}",
+				'Browse' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=browse&amp;id={$dir}{$this->config['defaultPage']}",
 				'Edit' => "{$action->base}{$action->page}?action=edit&amp;id={$action->page}",
-				'Upload' => "{$action->base}{$top}{$this->config['defaultPage']}?action=upload&amp;id={$top}{$this->config['defaultPage']}",
+				'Upload' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=upload&amp;id={$dir}{$this->config['defaultPage']}",
 			),
 			'related'  => ''
 		);
@@ -138,7 +138,7 @@ class MarkdownWiki {
 			// skip
 		} else {
 			$response['options'] += array(
-				'Index' => "{$action->base}{$top}{$this->config['defaultPage']}?id={$top}{$this->config['defaultPage']}",
+				'Index' => "{$action->base}{$dir}{$this->config['defaultPage']}?id={$dir}{$this->config['defaultPage']}",
 			);
 		}
 
@@ -146,17 +146,17 @@ class MarkdownWiki {
 	}
 
 	protected function doEdit($action) {
-		$top = $this->dirname($action->page);
-		$toptop = $this->dirname($top);
+		$dir = $this->dirname($action->page);
+		$updir = $this->dirname($dir);
 		$response = array(
 			'title'    => "Editing: {$action->page}",
 			'content'  => '',
 			'editForm' => $this->renderEditForm($action),
 			'options'  => array(
-				'Top' => "{$action->base}{$toptop}{$this->config['defaultPage']}?id={$toptop}{$this->config['defaultPage']}",
-				'Browse' => "{$action->base}{$top}{$this->config['defaultPage']}?action=browse&amp;id={$top}{$this->config['defaultPage']}",
+				'Up' => "{$action->base}{$updir}{$this->config['defaultPage']}?id={$updir}{$this->config['defaultPage']}",
+				'Browse' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=browse&amp;id={$dir}{$this->config['defaultPage']}",
 				'Cancel' => "{$action->base}{$action->page}",
-				'Upload' => "{$action->base}{$top}{$this->config['defaultPage']}?action=upload&amp;id={$top}{$this->config['defaultPage']}",
+				'Upload' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=upload&amp;id={$dir}{$this->config['defaultPage']}",
 			),
 			'related'  => ''
 		);
@@ -165,15 +165,15 @@ class MarkdownWiki {
 	}
 
 	protected function doPreview($action) {
-		$top = $this->dirname($action->page);
-		$toptop = $this->dirname($top);
+		$dir = $this->dirname($action->page);
+		$updir = $this->dirname($dir);
 		$response = array(
 			'title'    => "Editing: {$action->page}",
 			'content'  => $this->renderPreviewDocument($action),
 			'editForm' => $this->renderEditForm($action),
 			'options'  => array(
-				'Top' => "{$action->base}{$toptop}{$this->config['defaultPage']}?id={$toptop}{$this->config['defaultPage']}",
-				'Browse' => "{$action->base}{$top}{$this->config['defaultPage']}?action=browse&amp;id={$top}{$this->config['defaultPage']}",
+				'Up' => "{$action->base}{$updir}{$this->config['defaultPage']}?id={$updir}{$this->config['defaultPage']}",
+				'Browse' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=browse&amp;id={$dir}{$this->config['defaultPage']}",
 				'Cancel' => "{$action->base}{$action->page}",
 			),
 			'related'  => ''
@@ -203,24 +203,24 @@ class MarkdownWiki {
 	}
 
 	private function dirname($path) {
-		$top = dirname($path);
-		if ($top=='.' || $top=='/' || $top=='./' || $top=='') $top = ''; else $top .= '/';
-		return $top;
+		$dir = dirname($path);
+		if ($dir=='.' || $dir=='/' || $dir=='./' || $dir=='') $dir = ''; else $dir .= '/';
+		return $dir;
 	}
 
 	protected function doBrowse($action) {
-		$top1 = $top = $this->dirname($action->page);
-		if ($top1 == '') $top1 = '/';
-		$toptop = $this->dirname($top);
+		$dir1 = $dir = $this->dirname($action->page);
+		if ($dir1 == '') $dir1 = '/';
+		$updir = $this->dirname($dir);
 		$response = array(
-			'title'    => "Browsing: {$top1}",
+			'title'    => "Browsing: {$dir1}",
 			'content'  => $this->renderFileList($action),
 			'editForm' => '',
 			'options'  => array(
-				'Top' => "{$action->base}{$toptop}{$this->config['defaultPage']}?id={$toptop}{$this->config['defaultPage']}",
-				'Index' => "{$action->base}{$top}{$this->config['defaultPage']}?id={$top}{$this->config['defaultPage']}",
+				'Up' => "{$action->base}{$updir}{$this->config['defaultPage']}?id={$updir}{$this->config['defaultPage']}",
+				'Index' => "{$action->base}{$dir}{$this->config['defaultPage']}?id={$dir}{$this->config['defaultPage']}",
 				'Edit' => "{$action->base}{$action->page}?action=edit&amp;id={$action->page}",
-				'Upload' => "{$action->base}{$top}{$this->config['defaultPage']}?action=upload&amp;id={$top}{$this->config['defaultPage']}",
+				'Upload' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=upload&amp;id={$dir}{$this->config['defaultPage']}",
 			),
 			'related'  => ''
 		);
@@ -229,16 +229,16 @@ class MarkdownWiki {
 	}
 
 	protected function doUpload($action) {
-		$top1 = $top = $this->dirname($action->page);
-		if ($top1 == '') $top1 = '/';
-		$toptop = $this->dirname($top);
+		$dir1 = $dir = $this->dirname($action->page);
+		if ($dir1 == '') $dir1 = '/';
+		$updir = $this->dirname($dir);
 		$response = array(
-			'title'    => "Uploading to: {$top1}",
+			'title'    => "Uploading to: {$dir1}",
 			'content'  => '',
 			'editForm' => $this->renderUploadForm($action),
 			'options'  => array(
-				'Top' => "{$action->base}{$toptop}{$this->config['defaultPage']}?id={$toptop}{$this->config['defaultPage']}",
-				'Browse' => "{$action->base}{$top}{$this->config['defaultPage']}?action=browse&amp;id={$top}{$this->config['defaultPage']}",
+				'Up' => "{$action->base}{$updir}{$this->config['defaultPage']}?id={$updir}{$this->config['defaultPage']}",
+				'Browse' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=browse&amp;id={$dir}{$this->config['defaultPage']}",
 				'Cancel' => "{$action->base}{$action->page}",
 				'Edit' => "{$action->base}{$action->page}?action=edit&amp;id={$action->page}",
 			),
@@ -732,24 +732,24 @@ HTML;
 
 	protected function renderFileList($action) {
 		$directory = $this->dirname($action->model->file);
-		$top = $this->dirname($action->page);
+		$dir = $this->dirname($action->page);
 		$content[] = '<table>';
 		if (file_exists($directory)) foreach (scandir($directory) as $file) {
 			if ($file == '.' || $file == '..') continue;
 			$content[] = '<tr><td>';
 			if (is_dir("{$directory}{$file}")) {
-				$content[] = '<a href="' . "{$action->base}{$top}{$file}/{$this->config['defaultPage']}?id={$top}{$file}/{$this->config['defaultPage']}" . "\">{$file}</a>";
+				$content[] = '<a href="' . "{$action->base}{$dir}{$file}/{$this->config['defaultPage']}?id={$dir}{$file}/{$this->config['defaultPage']}" . "\">{$file}</a>";
 			} else {
-				$content[] = '<a href="' . "{$action->base}{$top}{$file}?id={$top}{$file}" . "\">{$file}</a>";
+				$content[] = '<a href="' . "{$action->base}{$dir}{$file}?id={$dir}{$file}" . "\">{$file}</a>";
 			}
 			$content[] = '</td><td>';
 			$content[] = filesize("{$directory}{$file}");
 			$content[] = '</td><td>';
 			$content[] = date("Y-m-d H:i:s", $this->getLastUpdated("{$directory}{$file}"));
 			$content[] = '</td><td>';
-			$content[] = "<a href=\"#\" onclick=\"deletePath('{$top}{$file}');return false;\">delete</a>";
+			$content[] = "<a href=\"#\" onclick=\"deletePath('{$dir}{$file}');return false;\">delete</a>";
 			$content[] = '</td><td>';
-			$content[] = "<a href=\"#\" onclick=\"renamePath('{$top}{$file}');return false;\">rename</a>";
+			$content[] = "<a href=\"#\" onclick=\"renamePath('{$dir}{$file}');return false;\">rename</a>";
 			$content[] = '</td></tr>';
 		}
 		$content[] = '</table>';
@@ -783,13 +783,13 @@ HTML;
 	}
 
 	protected function renderUploadForm($action) {
-		$top1 = $top = $this->dirname($action->page);
-		if ($top1 == '') $top1 = '/';
+		$dir1 = $dir = $this->dirname($action->page);
+		if ($dir1 == '') $dir1 = '/';
 
 		return <<<HTML
-<form action="{$action->base}{$top}{$this->config['defaultPage']}" method="post" enctype="multipart/form-data">
+<form action="{$action->base}{$dir}{$this->config['defaultPage']}" method="post" enctype="multipart/form-data">
 	<fieldset>
-		<legend>Uploading to {$top1}</legend>
+		<legend>Uploading to {$dir1}</legend>
 		<table><tr><td>
 		<label for="upload_file">Content:</label>
 		</td><td>
