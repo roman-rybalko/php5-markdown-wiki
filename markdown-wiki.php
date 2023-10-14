@@ -129,6 +129,7 @@ class MarkdownWiki {
 				'Top' => "{$action->base}{$toptop}{$this->config['defaultPage']}?id={$toptop}{$this->config['defaultPage']}",
 				'Browse' => "{$action->base}{$top}{$this->config['defaultPage']}?action=browse&amp;id={$top}{$this->config['defaultPage']}",
 				'Edit' => "{$action->base}{$action->page}?action=edit&amp;id={$action->page}",
+				'Upload' => "{$action->base}{$top}{$this->config['defaultPage']}?action=upload&amp;id={$top}{$this->config['defaultPage']}",
 			),
 			'related'  => ''
 		);
