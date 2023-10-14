@@ -1,5 +1,9 @@
 <?php 
 
+# basename, pathinfo
+# https://stackoverflow.com/questions/45268499/php-basename-and-pathinfo-with-multibytes-utf-8-file-names
+setlocale(LC_ALL,'C.UTF-8');
+
 # The directory containing the php5-markdown wiki code
 $appRoot = '/home/user/projects/php5-markdown/';
 
