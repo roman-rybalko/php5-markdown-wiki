@@ -196,9 +196,7 @@ class MarkdownWiki {
 
 		$response = $this->doDisplay($action);
 
-		if (!empty($msg)) {
-			$response['messages'][] = $msg;
-		}
+		if (!empty($msg)) $response['messages'][] = $msg;
 
 		return $response;
 	}
@@ -266,61 +264,16 @@ class MarkdownWiki {
 
 	protected function doRename($action) {
 		if (empty($action->post->path) || empty($action->post->newpath)) {
-			$response = $this->doBrowse($action);
-			$response['messages'][] = "ERROR: Invalid rename request (probably some params are insecure)";
-			return $response;
+			$msg = "ERROR: Invalid rename request (probably some params are insecure)";
+		} else {
+			$msg = $this->doModelRename($action->post->path, $action->post->newpath, !empty($action->post->force));
 		}
 
-		$path = "{$this->config['docDir']}{$action->post->path}";
-		if (!file_exists($path)) {
-			$response = $this->doBrowse($action);
-			$response['messages'][] = "ERROR: The path {$action->post->path} does not exist";
-			return $response;
-		}
+		$response = $this->doBrowse($action);
 
-		$newpath = "{$this->config['docDir']}{$action->post->newpath}";
-		$newpathdir = dirname($newpath);
+		if (!empty($msg)) $response['messages'][] = $msg;
 
-		if (!file_exists($newpathdir)) {
-			if (empty($action->post->force)) {
-				$response = $this->doBrowse($action);
-				$directory = $this->dirname($action->post->newpath);
-				$response['messages'][] = "ERROR: The destination directory {$directory} does not exist";
-				return $response;
-			}
-
-			if (!mkdir($newpathdir, 0777, true)) {
-				$response = $this->doBrowse($action);
-				$response['messages'][] = "ERROR: mkdir() failed (see the server error log)";
-				return $response;
-			}
-		}
-
-		if (!is_dir($newpathdir)) {
-			$response = $this->doBrowse($action);
-			$directory = $this->dirname($action->post->newpath);
-			$response['messages'][] = "ERROR: The destination directory {$directory} is a file";
-			return $response;
-		}
-
-		if (file_exists($newpath)) {
-			if (empty($action->post->force)) {
-				$response = $this->doBrowse($action);
-				$response['messages'][] = "ERROR: The path {$action->post->newpath} already exists";
-				return $response;
-			}
-
-			// force rename with clobbering
-			$newpath = $this->getBackupFilename($newpath);
-		}
-
-		if (!rename($path, $newpath)) {
-			$response = $this->doBrowse($action);
-			$response['messages'][] = "ERROR: rename() failed (see the server error log)";
-			return $response;
-		}
-
-		return $this->doBrowse($action);
+		return $response;
 	}
 
 	##
@@ -430,6 +383,46 @@ class MarkdownWiki {
 		}
 
 		if (!empty($msgs)) return $msgs;
+	}
+
+	protected function doModelRename($page, $newpage, $force = false) {
+		$path = "{$this->config['docDir']}{$page}";
+
+		if (!file_exists($path)) {
+			return "ERROR: The path {$page} does not exist";
+		}
+
+		$newpath = "{$this->config['docDir']}{$newpage}";
+		$newpathdir = dirname($newpath);
+
+		if (!file_exists($newpathdir)) {
+			if (!$force) {
+				$directory = $this->dirname($newpage);
+				return "ERROR: The destination directory {$directory} does not exist";
+			}
+
+			if (!mkdir($newpathdir, 0777, true)) {
+				return "ERROR: mkdir() failed (see the server error log)";
+			}
+		}
+
+		if (!is_dir($newpathdir)) {
+			$directory = $this->dirname($newpage);
+			return "ERROR: The destination directory {$directory} is a file";
+		}
+
+		if (file_exists($newpath)) {
+			if (!$force) {
+				return "ERROR: The path {$newpage} already exists";
+			}
+
+			// force rename with clobbering
+			$newpath = $this->getBackupFilename($newpath);
+		}
+
+		if (!rename($path, $newpath)) {
+			return "ERROR: rename() failed (see the server error log)";
+		}
 	}
 
 	##
