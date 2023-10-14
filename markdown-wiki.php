@@ -594,6 +594,7 @@ class MarkdownWiki {
 		} else {
 			$post->text    = stripslashes($request['text']);
 			$post->updated = $request['updated'];
+			if (!empty($request['resolve'])) $post->resolve = $request['resolve'];
 		}
 		return $post;
 	}
@@ -668,7 +669,31 @@ PAGE;
 		);
 	}
 
+	private function resolveUrls($text) {
+		$ctx = stream_context_create([
+			'http' => ['timeout' => 1, 'user_agent' => 'MobileSafari/604.1 CFNetwork/978.0.7 Darwin/18.7.0'],
+			'ssl' => ['verify_peer' => false, 'verify_peer_name' => false],
+		]);
+		$text = preg_replace_callback('|(\s+)(https?://[^\s,;\)\]\}]+)|i', function($matches) use($ctx) {
+			$space = $matches[1];
+			$url = $matches[2];
+			//error_log("url = {$url}");
+			$html = file_get_contents($url, false, $ctx, 0, 1000);
+			//error_log("html = " . preg_replace('|\s+|', "", $html));
+			if (preg_match('|<title[^>]*>(.+?)</title>|i', $html, $matches)) {
+				$title = $matches[1];
+				$title = trim($title);
+				$title = str_replace(['*', '_'], ['\*', '\_'], $title);
+			} else $title = str_replace(['*', '_'], ['\*', '\_'], $url);
+			//error_log("title = {$title}");
+			return "{$space}[{$title}]({$url})";
+		}, $text);
+		return $text;
+	}
+
 	protected function renderPreviewDocument($action) {
+		if (!empty($action->post->resolve))
+			$action->post->text = $this->resolveUrls($action->post->text);
 		return Markdown(
 			$action->post->text,
 			array($this, 'wikiLink')
@@ -695,7 +720,8 @@ PAGE;
 		<label for="text">Content:</label><br>
 		<textarea cols="78" rows="20" name="text" id="text">{$form['raw']}</textarea>
 		<br>
-
+		<input type="checkbox" name="resolve" value="resolve" id="resolve">
+		<label for="resolve" title="Fetch the html title, fill the link description.">Resolve urls in preview</label>
 		<input type="submit" name="preview" value="Preview">
 		<input type="submit" name="save" value="Save">
 		<input type="hidden" name="updated" value="{$form['updated']}">
