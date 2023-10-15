@@ -630,9 +630,13 @@ class Markdown_Parser {
 				$title .=  " title=\"$title\"";
 			}
 
-			// TODO: Replace with a callback facility
 			$isNewPage  = false;
-			
+			if ($this->linkCallback) {
+				$result = call_user_func($this->linkCallback, $url);
+				$isNewPage = $result[0];
+				$url = $result[1];
+			}
+
 			if ($isNewPage) {
 				$result = "[{$link_text}]<a href=\"{$url}\"{$title}>?</a>";
 			} else {
@@ -658,8 +662,7 @@ class Markdown_Parser {
 			$title = $this->encodeAttribute($title);
 			$title = " title=\"{$title}\"";
 		}
-		
-		// TODO: Callback to determine whether URL is new page
+
 		$isNewPage = false;
 		if ($this->linkCallback) {
 			$result = call_user_func($this->linkCallback, $url);
