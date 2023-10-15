@@ -70,7 +70,7 @@ class MarkdownWiki {
 
 		$action->response = $this->doAction($action);
 
-		if (empty($action->model->content) && empty($action->response['content']) && empty($action->response['messages'])) {
+		if (pathinfo($action->model->file, PATHINFO_EXTENSION) != $this->config['markdownExt'] && empty($action->response['messages'])) {
 			header('Content-Type: ' . mime_content_type($action->model->file));
 			header('Content-Length: ' . filesize($action->model->file));
 			readfile($action->model->file);
@@ -296,11 +296,7 @@ class MarkdownWiki {
 		}
 
 		$data->file = $this->getFilename($action->page, $filename);
-
-		if (pathinfo($data->file, PATHINFO_EXTENSION) == $this->config['markdownExt']) {
-			$data->content = $this->getContent($data->file);
-		}
-
+		$data->content = $this->getContent($data->file);
 		$data->updated = $this->getLastUpdated($data->file);
 
 		return $data;
@@ -477,6 +473,10 @@ class MarkdownWiki {
 	}
 
 	protected function getContent($filename) {
+		if (pathinfo($filename, PATHINFO_EXTENSION) != $this->config['markdownExt']) {
+			// skip a binary file
+			return '';
+		}
 		if (file_exists($filename)) {
 			return file_get_contents($filename);
 		}
@@ -667,7 +667,6 @@ PAGE;
 	}
 
 	protected function renderDocument($action) {
-		if (empty($action->model->content)) return '';
 		return Markdown(
 			$action->model->content,
 			array($this, 'wikiLink')
