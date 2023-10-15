@@ -11,7 +11,6 @@ class MarkdownWiki {
 
 	// An instance of the Markdown parser
 	protected $parser;
-	protected $baseUrl;
 
 	public function __construct($config=false) {
 		$this->initWiki();
@@ -28,26 +27,39 @@ class MarkdownWiki {
 		require_once $baseDir . 'markdown.php';
 	}
 
-	public function wikiLink($link) {
-		global $docIndex;
-
+	private function wikiLink($action, $link) {
 		$isNew = false;
-		$wikiUrl = $link;
+		$wikiUrl = '#';
 
-		if (preg_match('/^\/?([a-z0-9-]+(\/[a-z0-9-]+)*)$/i', $link, $matches)) {
-			$wikiUrl = "{$this->baseUrl}{$matches[1]}";
-			$isNew = !$this->isMarkdownFile($link);
-		} elseif ($link=='/') {
-			$wikiUrl = "{$this->baseUrl}{$this->config['defaultPage']}";
-			$isNew = !$this->isMarkdownFile($this->config['defaultPage']);
+		// str_contains()
+		if (strpos($link, '://') !== false) {
+			// URL
+			$isNew = false;
+			$wikiUrl = $link;
+		} elseif (substr($link, 0, 1) == '#') {
+			// fragment identifier (hash anchor)
+			$isNew = false;
+			$wikiUrl = $link;
+		} elseif (!$this->isPathSecure($link)) {
+			$isNew = true;
+			$wikiUrl = '#insecure';
+		} else {
+			// str_ends_with()
+			if (substr($link, -1) == '/') {
+				$link .= $this->config['defaultPage'];
+			}
+			// str_starts_with()
+			if (substr($link, 0, 1) == '/') {
+				$page = substr($link, 1);
+			} else {
+				$page = $this->dirname($action->page) . $link;
+			}
+			$isNew = !file_exists($this->getFilename($page));
+			$wikiUrl = "{$action->base}{$page}?id={$page}";
 		}
 
+		//error_log("link = {$link}, isNew = {$isNew}, wikiUrl = {$wikiUrl}");
 		return array($isNew, $wikiUrl);
-	}
-
-	public function isMarkdownFile($link) {
-		$filename = "{$this->config['docDir']}{$link}.{$this->config['markdownExt']}";
-		return file_exists($filename);
 	}
 
 	public function setConfig($config) {
@@ -449,9 +461,6 @@ class MarkdownWiki {
 			$action->post = $this->getPostDetails($request, $server);
 		}
 
-		// Take a copy of the action base for the wikiLink function
-		$this->baseUrl = $action->base;
-
 		return $action;
 	}
 
@@ -669,7 +678,9 @@ PAGE;
 	protected function renderDocument($action) {
 		return Markdown(
 			$action->model->content,
-			array($this, 'wikiLink')
+			function ($link) use($action) {
+				return $this->wikiLink($action, $link);
+			}
 		);
 	}
 
@@ -700,7 +711,9 @@ PAGE;
 			$action->post->text = $this->resolveUrls($action->post->text);
 		return Markdown(
 			$action->post->text,
-			array($this, 'wikiLink')
+			function ($link) use($action) {
+				return $this->wikiLink($action, $link);
+			}
 		);
 	}
 
