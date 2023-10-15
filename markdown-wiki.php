@@ -471,11 +471,17 @@ class MarkdownWiki {
 			$name = str_replace(' ', '_', $name);
 			return "{$this->config['docDir']}{$page}{$name}";
 		}
-		if (file_exists("{$this->config['docDir']}{$page}")) {
+		// Order is important
+		if (pathinfo($page, PATHINFO_EXTENSION) == $this->config['markdownExt']) {
 			return "{$this->config['docDir']}{$page}";
 		}
-		if (pathinfo($page, PATHINFO_EXTENSION) == $this->config['markdownExt'])
-		{
+		if (file_exists("{$this->config['docDir']}{$page}") && !is_dir("{$this->config['docDir']}{$page}")) {
+			return "{$this->config['docDir']}{$page}";
+		}
+		if (file_exists("{$this->config['docDir']}{$page}.{$this->config['markdownExt']}")) {
+			return "{$this->config['docDir']}{$page}.{$this->config['markdownExt']}";
+		}
+		if (file_exists("{$this->config['docDir']}{$page}")) {
 			return "{$this->config['docDir']}{$page}";
 		}
 		return "{$this->config['docDir']}{$page}.{$this->config['markdownExt']}";
