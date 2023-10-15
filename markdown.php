@@ -500,6 +500,7 @@ class Markdown_Parser {
 		"encodeAmpsAndAngles" =>  40,
 
 		"doItalicsAndBold"    =>  50,
+		"doStrikedthrough"    =>  55,
 		"doHardBreaks"        =>  60,
 		);
 
@@ -513,8 +514,15 @@ class Markdown_Parser {
 
 		return $text;
 	}
-	
-	
+
+
+	function doStrikedthrough($text) {
+		$text = preg_replace('|~~(.+?)~~|s', '<s>\1</s>', $text);
+		$text = str_replace('\~', '~', $text);
+		return $text;
+	}
+
+
 	function doHardBreaks($text) {
 		# Do hard breaks:
 		return preg_replace_callback('/ {2,}\n/', 
