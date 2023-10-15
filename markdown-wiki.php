@@ -58,6 +58,11 @@ class MarkdownWiki {
 		$action           = $this->parseRequest($request, $server);
 		$action->model    = $this->getModelData($action);
 
+		if (is_dir($action->model->file)) {
+			$action->page .= "/{$this->config['defaultPage']}";
+			$action->model = $this->getModelData($action);
+		}
+
 		// If this is a new file, switch to edit mode
 		if ($action->model->updated==0 && $action->action=='display') {
 			$action->action = 'edit';
