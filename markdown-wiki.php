@@ -139,10 +139,11 @@ class MarkdownWiki {
 		return basename($page)==$this->config['defaultPage'] || basename($page)=="{$this->config['defaultPage']}.{$this->config['markdownExt']}";
 	}
 
-	private function getUpLink($action) {
+	private function getUpLink($action, $force = false) {
 		$dir = $this->dirname($action->page);
 		$updir = $this->dirname($dir);
-		$up = $this->isDefaultPage($action->page) ? "{$action->base}{$updir}{$this->config['defaultPage']}?id={$updir}{$this->config['defaultPage']}"
+		$up = $this->isDefaultPage($action->page) || $force
+			? "{$action->base}{$updir}{$this->config['defaultPage']}?id={$updir}{$this->config['defaultPage']}"
 			: "{$action->base}{$dir}{$this->config['defaultPage']}?id={$dir}{$this->config['defaultPage']}";
 		return $up;
 	}
@@ -235,7 +236,7 @@ class MarkdownWiki {
 			'content'  => $this->renderFileList($action),
 			'editForm' => '',
 			'options'  => array(
-				'Up' => $this->getUpLink($action),
+				'Up' => $this->getUpLink($action, true) . "&action=browse",
 				'Display' => "{$action->base}{$action->page}?id={$action->page}",
 				'Edit' => "{$action->base}{$action->page}?action=edit&id={$action->page}",
 				'Upload' => "{$action->base}{$action->page}?action=upload&id={$action->page}",
@@ -763,7 +764,7 @@ HTML;
 			if ($file == '.' || $file == '..') continue;
 			$content[] = '<tr><td>';
 			if (is_dir("{$fsdir}{$file}")) {
-				$content[] = '<a href="' . "{$action->base}{$urldir}{$file}/{$this->config['defaultPage']}?id={$urldir}{$file}/{$this->config['defaultPage']}" . "\">{$file}</a>";
+				$content[] = '<a href="' . "{$action->base}{$urldir}{$file}/{$this->config['defaultPage']}?action=browse&id={$urldir}{$file}/{$this->config['defaultPage']}" . "\">{$file}</a>";
 			} else {
 				$content[] = '<a href="' . "{$action->base}{$urldir}{$file}?id={$urldir}{$file}" . "\">{$file}</a>";
 			}
