@@ -150,9 +150,9 @@ class MarkdownWiki {
 			'editForm' => '',
 			'options'  => array(
 				'Up' => $up,
-				'Browse' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=browse&amp;id={$dir}{$this->config['defaultPage']}",
-				'Edit' => "{$action->base}{$action->page}?action=edit&amp;id={$action->page}",
-				'Upload' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=upload&amp;id={$dir}{$this->config['defaultPage']}",
+				'Browse' => "{$action->base}{$action->page}?action=browse&id={$action->page}",
+				'Edit' => "{$action->base}{$action->page}?action=edit&id={$action->page}",
+				'Upload' => "{$action->base}{$action->page}?action=upload&id={$action->page}",
 			),
 			'related'  => ''
 		);
@@ -171,9 +171,9 @@ class MarkdownWiki {
 			'editForm' => $this->renderEditForm($action),
 			'options'  => array(
 				'Up' => $up,
-				'Browse' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=browse&amp;id={$dir}{$this->config['defaultPage']}",
-				'Cancel' => "{$action->base}{$action->page}",
-				'Upload' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=upload&amp;id={$dir}{$this->config['defaultPage']}",
+				'Browse' => "{$action->base}{$action->page}?action=browse&id={$action->page}",
+				'Cancel' => "{$action->base}{$action->page}?id={$action->page}",
+				'Upload' => "{$action->base}{$action->page}?action=upload&id={$action->page}",
 			),
 			'related'  => ''
 		);
@@ -192,8 +192,8 @@ class MarkdownWiki {
 			'editForm' => $this->renderEditForm($action),
 			'options'  => array(
 				'Up' => $up,
-				'Browse' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=browse&amp;id={$dir}{$this->config['defaultPage']}",
-				'Cancel' => "{$action->base}{$action->page}",
+				'Browse' => "{$action->base}{$action->page}?action=browse&id={$action->page}",
+				'Cancel' => "{$action->base}{$action->page}?id={$action->page}",
 			),
 			'related'  => ''
 		);
@@ -239,8 +239,9 @@ class MarkdownWiki {
 			'editForm' => '',
 			'options'  => array(
 				'Up' => $up,
-				'Edit' => "{$action->base}{$action->page}?action=edit&amp;id={$action->page}",
-				'Upload' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=upload&amp;id={$dir}{$this->config['defaultPage']}",
+				'Display' => "{$action->base}{$action->page}?id={$action->page}",
+				'Edit' => "{$action->base}{$action->page}?action=edit&id={$action->page}",
+				'Upload' => "{$action->base}{$action->page}?action=upload&id={$action->page}",
 			),
 			'related'  => ''
 		);
@@ -260,9 +261,9 @@ class MarkdownWiki {
 			'editForm' => $this->renderUploadForm($action),
 			'options'  => array(
 				'Up' => $up,
-				'Browse' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=browse&amp;id={$dir}{$this->config['defaultPage']}",
-				'Cancel' => "{$action->base}{$action->page}",
-				'Edit' => "{$action->base}{$action->page}?action=edit&amp;id={$action->page}",
+				'Browse' => "{$action->base}{$action->page}?action=browse&id={$action->page}",
+				'Edit' => "{$action->base}{$action->page}?action=edit&id={$action->page}",
+				'Cancel' => "{$action->base}{$action->page}?id={$action->page}",
 			),
 			'related'  => ''
 		);
@@ -743,6 +744,7 @@ PAGE;
 
 		return <<<HTML
 <form action="{$action->base}{$action->page}" method="post">
+	<input type="hidden" name="id" value="{$action->page}">
 	<fieldset>
 		<legend>Editing</legend>
 		<label for="text">Content:</label><br>
@@ -783,6 +785,7 @@ HTML;
 		$content[] = '</table>';
 		$content[] = <<<HTML
 <form action="{$action->base}{$action->page}" method="post" id="rename">
+	<input type="hidden" name="id" value="{$action->page}">
 	<input type="hidden" name="path" id="rename_path">
 	<input type="hidden" name="newpath" id="rename_newpath">
 	<input type="hidden" name="rename" value="rename">
@@ -815,7 +818,8 @@ HTML;
 		if ($dir1 == '') $dir1 = '/';
 
 		return <<<HTML
-<form action="{$action->base}{$dir}{$this->config['defaultPage']}" method="post" enctype="multipart/form-data">
+<form action="{$action->base}{$action->page}" method="post" enctype="multipart/form-data">
+	<input type="hidden" name="id" value="{$action->page}">
 	<fieldset>
 		<legend>Uploading to {$dir1}</legend>
 		<table><tr><td>
