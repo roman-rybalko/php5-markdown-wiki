@@ -847,7 +847,7 @@ HTML;
 
 }
 
-if (!empty($_SERVER['REQUEST_URI'])) {
+if (!empty($config)) {
 	# Dealing with a web request
 	$wiki = new MarkdownWiki($config);
 	$wiki->handleRequest();
