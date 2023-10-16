@@ -272,7 +272,10 @@ class MarkdownWiki {
 		} elseif ($msg) {
 			$response['messages'][] = $msg;
 		} else {
-			return $this->doBrowse($action);
+			// workaround: add some messages to prevent binary passthrough
+			$response = $this->doBrowse($action);
+			$response['messages'][] = "Uploaded: " . basename($action->model->file);
+			return $response;
 		}
 
 		return $response;
