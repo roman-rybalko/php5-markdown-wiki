@@ -135,15 +135,21 @@ class MarkdownWiki {
 		return $response;
 	}
 
+	private function isDefaultPage($page) {
+		return basename($page)==$this->config['defaultPage'] || basename($page)=="{$this->config['defaultPage']}.{$this->config['markdownExt']}";
+	}
+
 	protected function doDisplay($action) {
 		$dir = $this->dirname($action->page);
 		$updir = $this->dirname($dir);
+		$up = $this->isDefaultPage($action->page) ? "{$action->base}{$updir}{$this->config['defaultPage']}?id={$updir}{$this->config['defaultPage']}"
+			: "{$action->base}{$dir}{$this->config['defaultPage']}?id={$dir}{$this->config['defaultPage']}";
 		$response = array(
 			'title'    => "Displaying: {$action->page}",
 			'content'  => $this->renderDocument($action),
 			'editForm' => '',
 			'options'  => array(
-				'Up' => "{$action->base}{$updir}{$this->config['defaultPage']}?id={$updir}{$this->config['defaultPage']}",
+				'Up' => $up,
 				'Browse' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=browse&amp;id={$dir}{$this->config['defaultPage']}",
 				'Edit' => "{$action->base}{$action->page}?action=edit&amp;id={$action->page}",
 				'Upload' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=upload&amp;id={$dir}{$this->config['defaultPage']}",
@@ -151,26 +157,20 @@ class MarkdownWiki {
 			'related'  => ''
 		);
 
-		if (basename($action->page)==$this->config['defaultPage'] || basename($action->page)=="{$this->config['defaultPage']}.{$this->config['markdownExt']}") {
-			// skip
-		} else {
-			$response['options'] += array(
-				'Index' => "{$action->base}{$dir}{$this->config['defaultPage']}?id={$dir}{$this->config['defaultPage']}",
-			);
-		}
-
 		return $response;
 	}
 
 	protected function doEdit($action) {
 		$dir = $this->dirname($action->page);
 		$updir = $this->dirname($dir);
+		$up = $this->isDefaultPage($action->page) ? "{$action->base}{$updir}{$this->config['defaultPage']}?id={$updir}{$this->config['defaultPage']}"
+			: "{$action->base}{$dir}{$this->config['defaultPage']}?id={$dir}{$this->config['defaultPage']}";
 		$response = array(
 			'title'    => "Editing: {$action->page}",
 			'content'  => '',
 			'editForm' => $this->renderEditForm($action),
 			'options'  => array(
-				'Up' => "{$action->base}{$updir}{$this->config['defaultPage']}?id={$updir}{$this->config['defaultPage']}",
+				'Up' => $up,
 				'Browse' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=browse&amp;id={$dir}{$this->config['defaultPage']}",
 				'Cancel' => "{$action->base}{$action->page}",
 				'Upload' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=upload&amp;id={$dir}{$this->config['defaultPage']}",
@@ -184,12 +184,14 @@ class MarkdownWiki {
 	protected function doPreview($action) {
 		$dir = $this->dirname($action->page);
 		$updir = $this->dirname($dir);
+		$up = $this->isDefaultPage($action->page) ? "{$action->base}{$updir}{$this->config['defaultPage']}?id={$updir}{$this->config['defaultPage']}"
+			: "{$action->base}{$dir}{$this->config['defaultPage']}?id={$dir}{$this->config['defaultPage']}";
 		$response = array(
 			'title'    => "Editing: {$action->page}",
 			'content'  => $this->renderPreviewDocument($action),
 			'editForm' => $this->renderEditForm($action),
 			'options'  => array(
-				'Up' => "{$action->base}{$updir}{$this->config['defaultPage']}?id={$updir}{$this->config['defaultPage']}",
+				'Up' => $up,
 				'Browse' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=browse&amp;id={$dir}{$this->config['defaultPage']}",
 				'Cancel' => "{$action->base}{$action->page}",
 			),
@@ -229,13 +231,14 @@ class MarkdownWiki {
 		$dir1 = $dir = $this->dirname($action->page);
 		if ($dir1 == '') $dir1 = '/';
 		$updir = $this->dirname($dir);
+		$up = $this->isDefaultPage($action->page) ? "{$action->base}{$updir}{$this->config['defaultPage']}?id={$updir}{$this->config['defaultPage']}"
+			: "{$action->base}{$dir}{$this->config['defaultPage']}?id={$dir}{$this->config['defaultPage']}";
 		$response = array(
 			'title'    => "Browsing: {$dir1}",
 			'content'  => $this->renderFileList($action),
 			'editForm' => '',
 			'options'  => array(
-				'Up' => "{$action->base}{$updir}{$this->config['defaultPage']}?id={$updir}{$this->config['defaultPage']}",
-				'Index' => "{$action->base}{$dir}{$this->config['defaultPage']}?id={$dir}{$this->config['defaultPage']}",
+				'Up' => $up,
 				'Edit' => "{$action->base}{$action->page}?action=edit&amp;id={$action->page}",
 				'Upload' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=upload&amp;id={$dir}{$this->config['defaultPage']}",
 			),
@@ -249,12 +252,14 @@ class MarkdownWiki {
 		$dir1 = $dir = $this->dirname($action->page);
 		if ($dir1 == '') $dir1 = '/';
 		$updir = $this->dirname($dir);
+		$up = $this->isDefaultPage($action->page) ? "{$action->base}{$updir}{$this->config['defaultPage']}?id={$updir}{$this->config['defaultPage']}"
+			: "{$action->base}{$dir}{$this->config['defaultPage']}?id={$dir}{$this->config['defaultPage']}";
 		$response = array(
 			'title'    => "Uploading to: {$dir1}",
 			'content'  => '',
 			'editForm' => $this->renderUploadForm($action),
 			'options'  => array(
-				'Up' => "{$action->base}{$updir}{$this->config['defaultPage']}?id={$updir}{$this->config['defaultPage']}",
+				'Up' => $up,
 				'Browse' => "{$action->base}{$dir}{$this->config['defaultPage']}?action=browse&amp;id={$dir}{$this->config['defaultPage']}",
 				'Cancel' => "{$action->base}{$action->page}",
 				'Edit' => "{$action->base}{$action->page}?action=edit&amp;id={$action->page}",
