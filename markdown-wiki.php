@@ -753,25 +753,25 @@ HTML;
 	}
 
 	protected function renderFileList($action) {
-		$directory = $this->dirname($action->model->file);
-		$dir = $this->dirname($action->page);
+		$fsdir = $this->dirname($action->model->file);
+		$urldir = $this->dirname($action->page);
 		$content[] = '<table>';
-		if (file_exists($directory)) foreach (scandir($directory) as $file) {
+		if (file_exists($fsdir)) foreach (scandir($fsdir) as $file) {
 			if ($file == '.' || $file == '..') continue;
 			$content[] = '<tr><td>';
-			if (is_dir("{$directory}{$file}")) {
-				$content[] = '<a href="' . "{$action->base}{$dir}{$file}/{$this->config['defaultPage']}?id={$dir}{$file}/{$this->config['defaultPage']}" . "\">{$file}</a>";
+			if (is_dir("{$fsdir}{$file}")) {
+				$content[] = '<a href="' . "{$action->base}{$urldir}{$file}/{$this->config['defaultPage']}?id={$urldir}{$file}/{$this->config['defaultPage']}" . "\">{$file}</a>";
 			} else {
-				$content[] = '<a href="' . "{$action->base}{$dir}{$file}?id={$dir}{$file}" . "\">{$file}</a>";
+				$content[] = '<a href="' . "{$action->base}{$urldir}{$file}?id={$urldir}{$file}" . "\">{$file}</a>";
 			}
 			$content[] = '</td><td>';
-			$content[] = filesize("{$directory}{$file}");
+			$content[] = filesize("{$fsdir}{$file}");
 			$content[] = '</td><td>';
-			$content[] = date("Y-m-d H:i:s", $this->getLastUpdated("{$directory}{$file}"));
+			$content[] = date("Y-m-d H:i:s", $this->getLastUpdated("{$fsdir}{$file}"));
 			$content[] = '</td><td>';
-			$content[] = "<a href=\"#\" onclick=\"deletePath('{$dir}{$file}');return false;\">delete</a>";
+			$content[] = "<a href=\"#\" onclick=\"deletePath('{$urldir}{$file}');return false;\">delete</a>";
 			$content[] = '</td><td>';
-			$content[] = "<a href=\"#\" onclick=\"renamePath('{$dir}{$file}');return false;\">rename</a>";
+			$content[] = "<a href=\"#\" onclick=\"renamePath('{$urldir}{$file}');return false;\">rename</a>";
 			$content[] = '</td></tr>';
 		}
 		$content[] = '</table>';
