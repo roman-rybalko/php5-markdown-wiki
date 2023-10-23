@@ -236,7 +236,13 @@ class Markdown_Parser {
 	}
 	function _stripLinkDefinitions_callback($matches) {
 		$link_id = strtolower($matches[1]);
-		$this->urls[$link_id] = $matches[2];
+		$url = $matches[2];
+		if ($this->linkCallback) {
+			$result = call_user_func($this->linkCallback, $url);
+			$isNewPage = $result[0];
+			$url = $result[1];
+		}
+		$this->urls[$link_id] = $url;
 		$this->titles[$link_id] =& $matches[3];
 		return ''; # String that will replace the block
 	}
@@ -771,6 +777,11 @@ class Markdown_Parser {
 
 		$alt_text = $this->encodeAttribute($alt_text);
 		$url = $this->encodeAttribute($url);
+		if ($this->linkCallback) {
+			$result = call_user_func($this->linkCallback, $url);
+			$isNewPage = $result[0];
+			$url = $result[1];
+		}
 		$result = "<img src=\"$url\" alt=\"$alt_text\"";
 		if (isset($title)) {
 			$title = $this->encodeAttribute($title);
