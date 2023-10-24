@@ -663,7 +663,7 @@ HTML;
 	<meta charset="UTF-8">
 	<title>{$response['title']}</title>
 </head>
-<body>
+<body style="background-color: white;">
 	<div id="page">
 		<div id="head">
 {$response['header']}
