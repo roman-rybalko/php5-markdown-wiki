@@ -495,6 +495,9 @@ class MarkdownWiki {
 			return '';
 		}
 		if (file_exists($filename)) {
+			if (is_dir($filename)) {
+				return '';
+			}
 			return file_get_contents($filename);
 		}
 		return $this->config['newPageText'];
