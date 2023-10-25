@@ -55,7 +55,7 @@ class MarkdownWiki {
 				$page = $this->dirname($action->page) . $link;
 			}
 			$isNew = !file_exists($this->getFilename($page));
-			$wikiUrl = "{$action->base}{$page}?id={$page}";
+			$wikiUrl = "{$action->base}{$page}?id=" . urlencode($page);
 		}
 
 		//error_log("link = {$link}, isNew = {$isNew}, wikiUrl = {$wikiUrl}");
@@ -143,8 +143,8 @@ class MarkdownWiki {
 		$dir = $this->dirname($action->page);
 		$updir = $this->dirname($dir);
 		$up = $this->isDefaultPage($action->page) || $force
-			? "{$action->base}{$updir}{$this->config['defaultPage']}?id={$updir}{$this->config['defaultPage']}"
-			: "{$action->base}{$dir}{$this->config['defaultPage']}?id={$dir}{$this->config['defaultPage']}";
+			? "{$action->base}{$updir}{$this->config['defaultPage']}?id=" . urlencode("{$updir}{$this->config['defaultPage']}")
+			: "{$action->base}{$dir}{$this->config['defaultPage']}?id=" . urlencode("{$dir}{$this->config['defaultPage']}");
 		return $up;
 	}
 
@@ -155,9 +155,9 @@ class MarkdownWiki {
 			'editForm' => '',
 			'options'  => array(
 				'Up' => $this->getUpLink($action),
-				'Browse' => "{$action->base}{$action->page}?action=browse&id={$action->page}",
-				'Edit' => "{$action->base}{$action->page}?action=edit&id={$action->page}",
-				'Upload' => "{$action->base}{$action->page}?action=upload&id={$action->page}",
+				'Browse' => "{$action->base}{$action->page}?action=browse&id=" . urlencode("{$action->page}"),
+				'Edit' => "{$action->base}{$action->page}?action=edit&id=" . urlencode("{$action->page}"),
+				'Upload' => "{$action->base}{$action->page}?action=upload&id=" . urlencode("{$action->page}"),
 			),
 			'related'  => ''
 		);
@@ -172,9 +172,9 @@ class MarkdownWiki {
 			'editForm' => $this->renderEditForm($action),
 			'options'  => array(
 				'Up' => $this->getUpLink($action),
-				'Browse' => "{$action->base}{$action->page}?action=browse&id={$action->page}",
-				'Cancel' => "{$action->base}{$action->page}?id={$action->page}",
-				'Upload' => "{$action->base}{$action->page}?action=upload&id={$action->page}",
+				'Browse' => "{$action->base}{$action->page}?action=browse&id=" . urlencode("{$action->page}"),
+				'Cancel' => "{$action->base}{$action->page}?id=" . urlencode("{$action->page}"),
+				'Upload' => "{$action->base}{$action->page}?action=upload&id=" . urlencode("{$action->page}"),
 			),
 			'related'  => ''
 		);
@@ -189,8 +189,8 @@ class MarkdownWiki {
 			'editForm' => $this->renderEditForm($action),
 			'options'  => array(
 				'Up' => $this->getUpLink($action),
-				'Browse' => "{$action->base}{$action->page}?action=browse&id={$action->page}",
-				'Cancel' => "{$action->base}{$action->page}?id={$action->page}",
+				'Browse' => "{$action->base}{$action->page}?action=browse&id=" . urlencode("{$action->page}"),
+				'Cancel' => "{$action->base}{$action->page}?id=" . urlencode("{$action->page}"),
 			),
 			'related'  => ''
 		);
@@ -237,9 +237,9 @@ class MarkdownWiki {
 			'editForm' => '',
 			'options'  => array(
 				'Up' => $this->getUpLink($action, true) . "&action=browse",
-				'Display' => "{$action->base}{$action->page}?id={$action->page}",
-				'Edit' => "{$action->base}{$action->page}?action=edit&id={$action->page}",
-				'Upload' => "{$action->base}{$action->page}?action=upload&id={$action->page}",
+				'Display' => "{$action->base}{$action->page}?id=" . urlencode("{$action->page}"),
+				'Edit' => "{$action->base}{$action->page}?action=edit&id=" . urlencode("{$action->page}"),
+				'Upload' => "{$action->base}{$action->page}?action=upload&id=" . urlencode("{$action->page}"),
 			),
 			'related'  => ''
 		);
@@ -254,9 +254,9 @@ class MarkdownWiki {
 			'editForm' => $this->renderUploadForm($action),
 			'options'  => array(
 				'Up' => $this->getUpLink($action),
-				'Browse' => "{$action->base}{$action->page}?action=browse&id={$action->page}",
-				'Edit' => "{$action->base}{$action->page}?action=edit&id={$action->page}",
-				'Cancel' => "{$action->base}{$action->page}?id={$action->page}",
+				'Browse' => "{$action->base}{$action->page}?action=browse&id=" . urlencode("{$action->page}"),
+				'Edit' => "{$action->base}{$action->page}?action=edit&id=" . urlencode("{$action->page}"),
+				'Cancel' => "{$action->base}{$action->page}?id=" . urlencode("{$action->page}"),
 			),
 			'related'  => ''
 		);
@@ -767,9 +767,9 @@ HTML;
 			if ($file == '.' || $file == '..') continue;
 			$content[] = '<tr><td>';
 			if (is_dir("{$fsdir}{$file}")) {
-				$content[] = '<a href="' . "{$action->base}{$urldir}{$file}/{$this->config['defaultPage']}?action=browse&id={$urldir}{$file}/{$this->config['defaultPage']}" . "\">{$file}</a>";
+				$content[] = '<a href="' . "{$action->base}{$urldir}{$file}/{$this->config['defaultPage']}?action=browse&id=" . urlencode("{$urldir}{$file}/{$this->config['defaultPage']}") . "\">{$file}</a>";
 			} else {
-				$content[] = '<a href="' . "{$action->base}{$urldir}{$file}?id={$urldir}{$file}" . "\">{$file}</a>";
+				$content[] = '<a href="' . "{$action->base}{$urldir}{$file}?id=" . urlencode("{$urldir}{$file}") . "\">{$file}</a>";
 			}
 			$content[] = '</td><td>';
 			$content[] = filesize("{$fsdir}{$file}");
