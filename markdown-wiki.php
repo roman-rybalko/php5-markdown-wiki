@@ -275,7 +275,8 @@ class MarkdownWiki {
 		} else {
 			// workaround: add some messages to prevent binary passthrough
 			$response = $this->doBrowse($action);
-			$response['messages'][] = "Uploaded: " . basename($action->model->file);
+			$response['messages'][] = "Uploaded: " . basename($action->model->file) . " "
+				. "<a href=\"#\" onclick=\"renamePath('" . $this->dirname($action->page) . basename($action->model->file) . "');return false;\">rename</a>";
 			return $response;
 		}
 
