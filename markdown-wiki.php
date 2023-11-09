@@ -472,6 +472,7 @@ class MarkdownWiki {
 			if (substr($page, -1) != '/') $page = $this->dirname($page);
 			$name = basename($name);
 			$name = str_replace(' ', '_', $name);
+			$name = str_replace('%', '_', $name);
 			return "{$this->config['docDir']}{$page}{$name}";
 		}
 		// Order is important
