@@ -769,6 +769,7 @@ document.addEventListener('keydown', function(e) {
 		document.getElementById('save').click();
 	}
 });
+document.getElementById('text').focus();
 </script>
 HTML;
 	}
@@ -862,6 +863,7 @@ function handleClipboard(e) {
 	}
 }
 window.addEventListener('paste', handleClipboard);
+document.getElementById('upload_file').focus();
 </script>
 HTML;
 	}
