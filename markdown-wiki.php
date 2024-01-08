@@ -679,11 +679,11 @@ HTML;
 			$response['header'] = implode("\n", $header);
 
 			if (empty($response['footer'])) {
-				$response['footer'] = '';
+				$response['footer'] = '<!-- footer -->';
 			}
 
 			if (empty($response['messages'])) {
-				$response['messages'] = '';
+				$response['messages'] = '<!-- messages -->';
 			} else {
 				$response['messages'] = '<table><tr><td>' . implode('</td></tr><tr><td>', $response['messages']) . '</td></tr></table>';
 			}
