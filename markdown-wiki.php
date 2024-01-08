@@ -632,6 +632,17 @@ class MarkdownWiki {
 
 	*********/
 
+	private function getHotkey($label) {
+		$key = strtoupper($label[0]);
+		foreach(str_split(strrev($label)) as $c) { // find Uppercase
+			if (ctype_upper($c)) {
+				$key = $c;
+				break;
+			}
+		}
+		return $key;
+	}
+
 	public function renderResponse($response) {
 		if (!empty($this->config['layout'])) {
 			// TODO: Use a custom template
@@ -641,11 +652,29 @@ class MarkdownWiki {
 			if (!empty($response['options'])) {
 				$header[] = '<table><tr>';
 				foreach($response['options'] as $label=>$link) {
+					$key = $this->getHotkey($label);
 					$header[] = <<<HTML
-<td><a href="{$link}">{$label}</a></td>
+<td><a href="{$link}" id="{$label}" title="Ctrl-{$key}">{$label}</a></td>
 HTML;
 				}
 				$header[] = '</tr></table>';
+				$header[] = <<<HTML
+<script>
+document.addEventListener("keydown", function(e) {
+HTML;
+				foreach(array_keys($response['options']) as $label) {
+					$key = strtolower($this->getHotkey($label));
+					$header[] = <<<HTML
+	if (e.ctrlKey && e.key === '{$key}') {
+		e.preventDefault(); // file dialog, page source, print, etc.
+		document.getElementById("{$label}").click();
+	}
+HTML;
+				}
+				$header[] = <<<HTML
+});
+</script>
+HTML;
 			}
 			$response['header'] = implode("\n", $header);
 
