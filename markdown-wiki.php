@@ -753,11 +753,23 @@ PAGE;
 		<br>
 		<input type="checkbox" name="resolve" value="resolve" id="resolve">
 		<label for="resolve" title="Fetch the html title, fill the link description.">Resolve urls in preview</label>
-		<input type="submit" name="preview" value="Preview">
-		<input type="submit" name="save" value="Save">
+		<input type="submit" name="preview" value="Preview" id="preview" title="Ctrl-P">
+		<input type="submit" name="save" value="Save" id="save" title="Ctrl-S">
 		<input type="hidden" name="updated" value="{$form['updated']}">
 	</fieldset>
 </form>
+<script>
+document.addEventListener('keydown', function(e) {
+	if (e.ctrlKey && e.key === 'p') {
+		e.preventDefault(); // print dialog
+		document.getElementById('preview').click();
+	}
+	if (e.ctrlKey && e.key === 's') {
+		e.preventDefault(); // save dialog
+		document.getElementById('save').click();
+	}
+});
+</script>
 HTML;
 	}
 
