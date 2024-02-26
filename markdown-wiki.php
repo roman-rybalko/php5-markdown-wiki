@@ -173,7 +173,7 @@ class MarkdownWiki {
 			'options'  => array(
 				'Up' => $this->getUpLink($action),
 				'Browse' => "{$action->base}{$action->page}?action=browse&id=" . urlencode("{$action->page}"),
-				'cAncel' => "{$action->base}{$action->page}?id=" . urlencode("{$action->page}"),
+				'caNcel' => "{$action->base}{$action->page}?id=" . urlencode("{$action->page}"),
 				'uplOad' => "{$action->base}{$action->page}?action=upload&id=" . urlencode("{$action->page}"),
 			),
 			'related'  => ''
@@ -190,7 +190,7 @@ class MarkdownWiki {
 			'options'  => array(
 				'Up' => $this->getUpLink($action),
 				'Browse' => "{$action->base}{$action->page}?action=browse&id=" . urlencode("{$action->page}"),
-				'cAncel' => "{$action->base}{$action->page}?id=" . urlencode("{$action->page}"),
+				'caNcel' => "{$action->base}{$action->page}?id=" . urlencode("{$action->page}"),
 			),
 			'related'  => ''
 		);
@@ -256,7 +256,7 @@ class MarkdownWiki {
 				'Up' => $this->getUpLink($action),
 				'Browse' => "{$action->base}{$action->page}?action=browse&id=" . urlencode("{$action->page}"),
 				'Edit' => "{$action->base}{$action->page}?action=edit&id=" . urlencode("{$action->page}"),
-				'cAncel' => "{$action->base}{$action->page}?id=" . urlencode("{$action->page}"),
+				'caNcel' => "{$action->base}{$action->page}?id=" . urlencode("{$action->page}"),
 			),
 			'related'  => ''
 		);
