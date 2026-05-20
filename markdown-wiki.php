@@ -77,17 +77,24 @@ class MarkdownWiki {
 	}
 
 	public function handleRequest($request=false, $server=false) {
-		$action           = $this->parseRequest($request, $server);
-		$action->model    = $this->getModelData($action);
+		$action = $this->parseRequest($request, $server);
+
+		if (!$action->page) {
+			header('Location: ' . "{$action->base}" . $this->getNavUrlComponent("{$this->config['defaultPage']}"));
+			exit();
+		}
+
+		$action->model = $this->getModelData($action);
 
 		if (is_dir($action->model->file)) {
-			$action->page .= "/{$this->config['defaultPage']}";
-			$action->model = $this->getModelData($action);
+			header('Location: ' . "{$action->base}" . $this->getNavUrlComponent("{$action->page}/{$this->config['defaultPage']}"));
+			exit();
 		}
 
 		// If this is a new file, switch to edit mode
 		if ($action->model->updated==0 && $action->action=='display') {
-			$action->action = 'edit';
+			header('Location: ' . "{$action->base}" . $this->getNavUrlComponent("{$action->page}", "action=edit"));
+			exit();
 		}
 
 		$action->response = $this->doAction($action);
@@ -539,15 +546,8 @@ class MarkdownWiki {
 			//error_log("Path info detected");
 			// If we are using PATH_INFO then that's the page name
 			$page = substr($server['PATH_INFO'], 1);
-		} else {
-			// TODO: Keep checking
-			//error_log("WARN: Could not find a pagename");
 		}
-
-		// Check whether a default Page is being requested
-		if ($page=='' || preg_match('/\/$/', $page)) {
-			$page .= $this->config['defaultPage'];
-		}
+		$page = rtrim($page, '/');
 
 		return $page;
 	}
