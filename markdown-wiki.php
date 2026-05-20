@@ -6,6 +6,7 @@ class MarkdownWiki {
 		'docDir'      => '/tmp/',
 		'defaultPage' => 'index',
 		'newPageText' => 'Start editing your new page',
+		'pathInUrl'   => false, // PATH_INFO needed
 		'markdownExt' => 'markdown'
 	);
 
@@ -25,6 +26,15 @@ class MarkdownWiki {
 		// Including the markdown parser
 		//error_log("BaseDir: {$baseDir}");
 		require_once $baseDir . 'markdown.php';
+	}
+
+	private function getNavUrlComponent($page, $params = '') {
+		$navUrlComp = $this->config['pathInUrl'] ? '/' . $page : '?id=' . urlencode($page);
+		if ($params) {
+			$navUrlComp .= substr($navUrlComp, 0, 1) == '?' ? '&' : '?';
+			$navUrlComp .= $params;
+		}
+		return $navUrlComp;
 	}
 
 	private function wikiLink($action, $link) {
@@ -55,7 +65,7 @@ class MarkdownWiki {
 				$page = $this->dirname($action->page) . $link;
 			}
 			$isNew = !file_exists($this->getFilename($page));
-			$wikiUrl = "{$action->base}{$page}?id=" . urlencode($page);
+			$wikiUrl = "{$action->base}" . $this->getNavUrlComponent($page);
 		}
 
 		//error_log("link = {$link}, isNew = {$isNew}, wikiUrl = {$wikiUrl}");
@@ -139,12 +149,12 @@ class MarkdownWiki {
 		return basename($page)==$this->config['defaultPage'] || basename($page)=="{$this->config['defaultPage']}.{$this->config['markdownExt']}";
 	}
 
-	private function getUpLink($action, $force = false) {
+	private function getUpLink($action, $force = false, $params = '') {
 		$dir = $this->dirname($action->page);
 		$updir = $this->dirname($dir);
 		$up = $this->isDefaultPage($action->page) || $force
-			? "{$action->base}{$updir}{$this->config['defaultPage']}?id=" . urlencode("{$updir}{$this->config['defaultPage']}")
-			: "{$action->base}{$dir}{$this->config['defaultPage']}?id=" . urlencode("{$dir}{$this->config['defaultPage']}");
+			? "{$action->base}" . $this->getNavUrlComponent("{$updir}{$this->config['defaultPage']}", $params)
+			: "{$action->base}" . $this->getNavUrlComponent("{$dir}{$this->config['defaultPage']}", $params);
 		return $up;
 	}
 
@@ -155,9 +165,9 @@ class MarkdownWiki {
 			'editForm' => '',
 			'options'  => array(
 				'Up' => $this->getUpLink($action),
-				'Browse' => "{$action->base}{$action->page}?action=browse&id=" . urlencode("{$action->page}"),
-				'Edit' => "{$action->base}{$action->page}?action=edit&id=" . urlencode("{$action->page}"),
-				'uplOad' => "{$action->base}{$action->page}?action=upload&id=" . urlencode("{$action->page}"),
+				'Browse' => "{$action->base}" . $this->getNavUrlComponent("{$action->page}", "action=browse"),
+				'Edit' => "{$action->base}" . $this->getNavUrlComponent("{$action->page}", "action=edit"),
+				'uplOad' => "{$action->base}" . $this->getNavUrlComponent("{$action->page}", "action=upload"),
 			),
 			'related'  => ''
 		);
@@ -172,9 +182,9 @@ class MarkdownWiki {
 			'editForm' => $this->renderEditForm($action),
 			'options'  => array(
 				'Up' => $this->getUpLink($action),
-				'Browse' => "{$action->base}{$action->page}?action=browse&id=" . urlencode("{$action->page}"),
-				'cancel (D)' => "{$action->base}{$action->page}?id=" . urlencode("{$action->page}"),
-				'uplOad' => "{$action->base}{$action->page}?action=upload&id=" . urlencode("{$action->page}"),
+				'Browse' => "{$action->base}" . $this->getNavUrlComponent("{$action->page}", "action=browse"),
+				'cancel (D)' => "{$action->base}" . $this->getNavUrlComponent("{$action->page}"),
+				'uplOad' => "{$action->base}" . $this->getNavUrlComponent("{$action->page}", "action=upload"),
 			),
 			'related'  => ''
 		);
@@ -189,8 +199,8 @@ class MarkdownWiki {
 			'editForm' => $this->renderEditForm($action),
 			'options'  => array(
 				'Up' => $this->getUpLink($action),
-				'Browse' => "{$action->base}{$action->page}?action=browse&id=" . urlencode("{$action->page}"),
-				'cancel (D)' => "{$action->base}{$action->page}?id=" . urlencode("{$action->page}"),
+				'Browse' => "{$action->base}" . $this->getNavUrlComponent("{$action->page}", "action=browse"),
+				'cancel (D)' => "{$action->base}" . $this->getNavUrlComponent("{$action->page}"),
 			),
 			'related'  => ''
 		);
@@ -236,10 +246,10 @@ class MarkdownWiki {
 			'content'  => $this->renderFileList($action),
 			'editForm' => '',
 			'options'  => array(
-				'Up' => $this->getUpLink($action, true) . "&action=browse",
-				'Display' => "{$action->base}{$action->page}?id=" . urlencode("{$action->page}"),
-				'Edit' => "{$action->base}{$action->page}?action=edit&id=" . urlencode("{$action->page}"),
-				'uplOad' => "{$action->base}{$action->page}?action=upload&id=" . urlencode("{$action->page}"),
+				'Up' => $this->getUpLink($action, true, "action=browse"),
+				'Display' => "{$action->base}" . $this->getNavUrlComponent("{$action->page}"),
+				'Edit' => "{$action->base}" . $this->getNavUrlComponent("{$action->page}", "action=edit"),
+				'uplOad' => "{$action->base}" . $this->getNavUrlComponent("{$action->page}", "action=upload"),
 			),
 			'related'  => ''
 		);
@@ -254,9 +264,9 @@ class MarkdownWiki {
 			'editForm' => $this->renderUploadForm($action),
 			'options'  => array(
 				'Up' => $this->getUpLink($action),
-				'Browse' => "{$action->base}{$action->page}?action=browse&id=" . urlencode("{$action->page}"),
-				'Edit' => "{$action->base}{$action->page}?action=edit&id=" . urlencode("{$action->page}"),
-				'cancel (D)' => "{$action->base}{$action->page}?id=" . urlencode("{$action->page}"),
+				'Browse' => "{$action->base}" . $this->getNavUrlComponent("{$action->page}", "action=browse"),
+				'Edit' => "{$action->base}" . $this->getNavUrlComponent("{$action->page}", "action=edit"),
+				'cancel (D)' => "{$action->base}" . $this->getNavUrlComponent("{$action->page}"),
 			),
 			'related'  => ''
 		);
@@ -771,9 +781,9 @@ PAGE;
 				'updated' => $action->model->updated
 			);
 		}
-
+		$form_action = "{$action->base}" . $this->getNavUrlComponent("{$action->page}");
 		return <<<HTML
-<form action="{$action->base}{$action->page}" method="post">
+<form action="{$form_action}" method="post">
 	<input type="hidden" name="id" value="{$action->page}">
 	<fieldset>
 		<legend>Editing</legend>
@@ -811,9 +821,9 @@ HTML;
 			if ($file == '.' || $file == '..') continue;
 			$content[] = '<tr><td>';
 			if (is_dir("{$fsdir}{$file}")) {
-				$content[] = '<a href="' . "{$action->base}{$urldir}{$file}/{$this->config['defaultPage']}?action=browse&id=" . urlencode("{$urldir}{$file}/{$this->config['defaultPage']}") . "\">{$file}</a>";
+				$content[] = '<a href="' . "{$action->base}" . $this->getNavUrlComponent("{$urldir}{$file}/{$this->config['defaultPage']}", "action=browse") . "\">{$file}</a>";
 			} else {
-				$content[] = '<a href="' . "{$action->base}{$urldir}{$file}?id=" . urlencode("{$urldir}{$file}") . "\">{$file}</a>";
+				$content[] = '<a href="' . "{$action->base}" . $this->getNavUrlComponent("{$urldir}{$file}") . "\">{$file}</a>";
 			}
 			$content[] = '</td><td>';
 			$content[] = filesize("{$fsdir}{$file}");
@@ -826,8 +836,9 @@ HTML;
 			$content[] = '</td></tr>';
 		}
 		$content[] = '</table>';
+		$form_action = "{$action->base}" . $this->getNavUrlComponent("{$action->page}");
 		$content[] = <<<HTML
-<form action="{$action->base}{$action->page}" method="post" id="rename">
+<form action="{$form_action}" method="post" id="rename">
 	<input type="hidden" name="id" value="{$action->page}">
 	<input type="hidden" name="path" id="rename_path">
 	<input type="hidden" name="newpath" id="rename_newpath">
@@ -858,8 +869,9 @@ HTML;
 
 	protected function renderUploadForm($action) {
 		$dir = $this->getDisplayDir($action);
+		$form_action = "{$action->base}" . $this->getNavUrlComponent("{$action->page}");
 		return <<<HTML
-<form action="{$action->base}{$action->page}" method="post" enctype="multipart/form-data">
+<form action="{$form_action}" method="post" enctype="multipart/form-data">
 	<input type="hidden" name="id" value="{$action->page}">
 	<fieldset>
 		<legend>Uploading to {$dir}</legend>

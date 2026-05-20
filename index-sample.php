@@ -15,7 +15,8 @@ $config = array(
 	'defaultPage' => 'index'
 
 	# nginx PATH_INFO parsing needs an explicit .php extension
-	'baseUrl'     => '/markdown/index.php/',
+	'baseUrl'     => '/markdown/index.php',
+	'pathInUrl'   => false,
 
 );
 
