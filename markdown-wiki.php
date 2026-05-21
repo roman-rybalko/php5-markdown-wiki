@@ -278,23 +278,17 @@ class MarkdownWiki {
 			'related'  => ''
 		);
 
-		$msg = $this->setModelDataUpload($action->model, !empty($action->post->force));
-		//error_log("msg = {$msg}, type = " . gettype($msg));
-		if ($msg === '') {
-			// skip
-		} elseif (is_array($msg)) {
-			// informational messages
+		$ret = $this->setModelDataUpload($action->model, !empty($action->post->force), $action->page);
+		//error_log("ret = " . print_r($ret, true) . ", type = " . gettype($ret));
+		if (is_array($ret)) {
+			// ok, informational messages
 			$response = $this->doBrowse($action);
-			$response['messages'] = empty($response['messages']) ? $msg : $response['messages'] + $msg;
-			return $response;
-		} elseif ($msg) {
-			$response['messages'][] = $msg;
+			$response['messages'] = empty($response['messages']) ? $ret : $response['messages'] + $ret;
+		} elseif ($ret) {
+			// error
+			$response['messages'][] = $ret;
 		} else {
-			// workaround: add some messages to prevent binary passthrough
-			$response = $this->doBrowse($action);
-			$response['messages'][] = "Uploaded: " . basename($action->model->file) . " "
-				. "<a href=\"#\" onclick=\"renamePath('" . $this->dirname($action->page) . basename($action->model->file) . "');return false;\">rename</a>";
-			return $response;
+			// skip, first pass
 		}
 
 		return $response;
@@ -330,6 +324,13 @@ class MarkdownWiki {
 		$data->file = $this->getFilename($action->page, $filename);
 		$data->content = $this->getContent($data->file);
 		$data->updated = $this->getLastUpdated($data->file);
+
+		if ($action->method=='POST' && !empty($action->post->files)) {
+			$data->files = [];
+			foreach ($action->post->files as $file) {
+				$data->files[] = (object) ['file' => $this->getFilename($action->page, $file->filename), 'tmpfile' => $file->tmpfile];
+			}
+		}
 
 		return $data;
 	}
@@ -385,38 +386,58 @@ class MarkdownWiki {
 	}
 
 	// Returns:
-	// '' - no needed post data in the request, skipping
+	// null - no needed post data in the request, skipping
 	// 'str' - error
 	// ['str', 'str'] - ok, info messages
-	// NULL - ok
-	protected function setModelDataUpload($model, $force = false) {
+	protected function setModelDataUpload($model, $force, $page) {
 		if (empty($model->tmpfile)) {
 			// No uploaded file right now
-			return '';
+			return;
 		}
 
-		$directory = dirname($model->file);
-		if (!file_exists($directory)) {
-			mkdir($directory, 0777, true);
-		} elseif (!is_dir($directory)) {
-			return "ERROR: Can not create the directory " . basename($directory) . " (already exists, is a file)";
-		}
+		$msgs = [];
 
-		if (file_exists($model->file)) {
-			if (!$force) {
-				return "ERROR: File " . basename($model->file) . " already exists";
+		// Returns:
+		// null - ok
+		// 'str' - error
+		$fn = function(&$file, $tmpfile) use($force, $page, &$msgs) {
+			$dir = dirname($file);
+			if (!file_exists($dir)) {
+				mkdir($dir, 0777, true);
+			} elseif (!is_dir($dir)) {
+				return "ERROR: Can not create the directory " . basename($dir) . " (already exists, is a file)";
 			}
 
-			// force uploading with clobbering
-			$model->file = $this->getBackupFilename($model->file);
-			$msgs[] = "INFO: Target file already exists, uploaded with a new name: " . basename($model->file);
+			if (file_exists($file)) {
+				if (!$force) {
+					return "ERROR: File " . basename($file) . " already exists";
+				}
+
+				// force uploading with clobbering
+				$oldfile = $file;
+				$file = $this->getBackupFilename($file);
+				$msgs[] = "INFO: Target file " . basename($oldfile) . " already exists, uploaded with a new name: " . basename($file);
+			}
+
+			if (move_uploaded_file($tmpfile, $file)) {
+				$msgs[] = "Uploaded: " . basename($file)
+					. " " . $this->renderRenameControls($this->dirname($page) . basename($file));
+			} else {
+				return "ERROR: move_uploaded_file(" . basename($file) . ") failed (see the server error log)";
+			}
+		};
+
+		$ret = $fn($model->file, $model->tmpfile);
+
+		if (!empty($model->files)) {
+			if ($ret) $msgs[] = $ret;
+			foreach ($model->files as $mf) {
+				$ret = $fn($mf->file, $mf->tmpfile);
+				if ($ret) $msgs[] = $ret;
+			}
 		}
 
-		if (!move_uploaded_file($model->tmpfile, $model->file)) {
-			return "ERROR: move_uploaded_file() failed (see the server error log)";
-		}
-
-		if (!empty($msgs)) return $msgs;
+		return $msgs ? $msgs : $ret;
 	}
 
 	protected function doModelRename($page, $newpage, $force = false) {
@@ -618,8 +639,17 @@ class MarkdownWiki {
 	protected function getPostDetails($request, $server) {
 		$post = (object) NULL;
 		if (!empty($request['upload'])) {
-			$post->tmpfile = $_FILES['file']['tmp_name'];
-			$post->filename = basename($_FILES['file']['name']);
+			if (is_array($_FILES['file']['name'])) {
+				$post->tmpfile = $_FILES['file']['tmp_name'][0];
+				$post->filename = basename($_FILES['file']['name'][0]);
+				$post->files = [];
+				for ($i = 1; $i < count($_FILES['file']['name']); ++$i) {
+					$post->files[] = (object) ['filename' => basename($_FILES['file']['name'][$i]), 'tmpfile' => $_FILES['file']['tmp_name'][$i]];
+				}
+			} else {
+				$post->tmpfile = $_FILES['file']['tmp_name'];
+				$post->filename = basename($_FILES['file']['name']);
+			}
 			if (!empty($request['force'])) $post->force = $request['force'];
 		} elseif (!empty($request['rename'])) {
 			if ($this->isPathSecure($request['path'])) $post->path = $request['path'];
@@ -810,6 +840,14 @@ document.getElementById('text').focus();
 HTML;
 	}
 
+	private function renderDeleteControls($path) {
+		return "<a href=\"#\" onclick=\"deletePath('{$path}');return false;\">delete</a>";
+	}
+
+	private function renderRenameControls($path) {
+		return "<a href=\"#\" onclick=\"renamePath('{$path}');return false;\">rename</a>";
+	}
+
 	protected function renderFileList($action) {
 		$fsdir = $this->dirname($action->model->file);
 		$urldir = $this->dirname($action->page);
@@ -827,9 +865,9 @@ HTML;
 			$content[] = '</td><td>';
 			$content[] = date("Y-m-d H:i:s", $this->getLastUpdated("{$fsdir}{$file}"));
 			$content[] = '</td><td>';
-			$content[] = "<a href=\"#\" onclick=\"deletePath('{$urldir}{$file}');return false;\">delete</a>";
+			$content[] = $this->renderDeleteControls("{$urldir}{$file}");
 			$content[] = '</td><td>';
-			$content[] = "<a href=\"#\" onclick=\"renamePath('{$urldir}{$file}');return false;\">rename</a>";
+			$content[] = $this->renderRenameControls("{$urldir}{$file}");
 			$content[] = '</td></tr>';
 		}
 		$content[] = '</table>';
@@ -873,7 +911,7 @@ HTML;
 		<table><tr><td>
 		<label for="upload_file">Content:</label>
 		</td><td>
-		<input type="file" name="file" id="upload_file">
+		<input type="file" name="file[]" id="upload_file" multiple>
 		</td><td>
 		<input type="submit" name="upload" value="Upload" id="upload">
 		</td></tr></table>
