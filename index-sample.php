@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 # basename, pathinfo
 # https://stackoverflow.com/questions/45268499/php-basename-and-pathinfo-with-multibytes-utf-8-file-names
@@ -19,7 +19,6 @@ $config = array(
 	'pathInUrl'   => false,
 
 );
-
 
 # And off we go...
 require_once $appRoot . 'markdown-wiki.php';
