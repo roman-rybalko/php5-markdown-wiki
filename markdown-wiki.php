@@ -92,7 +92,7 @@ class MarkdownWiki {
 		}
 
 		// If this is a new file, switch to edit mode
-		if ($action->model->updated==0 && $action->action=='display') {
+		if (!$action->model->updated && in_array($action->action, ['display', 'UNKNOWN'])) {
 			header('Location: ' . "{$action->base}" . $this->getNavUrlComponent("{$action->page}", "action=edit"));
 			exit();
 		}
@@ -565,8 +565,6 @@ class MarkdownWiki {
 			}
 		} elseif (!empty($request['action'])) {
 			return $request['action'];
-		} elseif (!empty($server['PATH_INFO'])) {
-			return 'display';
 		}
 
 		return 'UNKNOWN';
@@ -784,7 +782,6 @@ PAGE;
 		$form_action = "{$action->base}" . $this->getNavUrlComponent("{$action->page}");
 		return <<<HTML
 <form action="{$form_action}" method="post">
-	<input type="hidden" name="id" value="{$action->page}">
 	<fieldset>
 		<legend>Editing</legend>
 		<label for="text">Content:</label><br>
@@ -839,7 +836,6 @@ HTML;
 		$form_action = "{$action->base}" . $this->getNavUrlComponent("{$action->page}");
 		$content[] = <<<HTML
 <form action="{$form_action}" method="post" id="rename">
-	<input type="hidden" name="id" value="{$action->page}">
 	<input type="hidden" name="path" id="rename_path">
 	<input type="hidden" name="newpath" id="rename_newpath">
 	<input type="hidden" name="rename" value="rename">
@@ -872,7 +868,6 @@ HTML;
 		$form_action = "{$action->base}" . $this->getNavUrlComponent("{$action->page}");
 		return <<<HTML
 <form action="{$form_action}" method="post" enctype="multipart/form-data">
-	<input type="hidden" name="id" value="{$action->page}">
 	<fieldset>
 		<legend>Uploading to {$dir}</legend>
 		<table><tr><td>
