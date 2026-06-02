@@ -568,6 +568,8 @@ class MarkdownWiki {
 			// If we are using PATH_INFO then that's the page name
 			$page = substr($server['PATH_INFO'], 1);
 		}
+
+		if (!$this->isPathSecure($page)) $page = '';
 		$page = rtrim($page, '/');
 
 		return $page;
